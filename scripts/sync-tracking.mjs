@@ -16,6 +16,7 @@
  *   4. 文件头部的调研信息引用块折叠为默认收起的 <details>
  *   5. 金额 $ 转义为 \$（跳过代码块与行内代码），避免 remark-math 误判为公式
  *   6. 内容不变则不写盘；名称不符合约定的文件跳过并警告
+ *   7. 报告站内孤儿副本（源已删除/改名而站内残留的生成物，只报告不删除）
  */
 import fs from 'node:fs'
 import path from 'node:path'
@@ -211,12 +212,32 @@ for (const fileName of [...CLASSIFIED.keys()]) {
   }
 }
 
+// ---- 孤儿副本检测（站内存在、源已删除/改名）----
+const expected = new Set(
+  [...CLASSIFIED.values()].map((info) =>
+    path.join(DEST_DIR, info.kind === 'hotnews' ? 'hotnews' : 'topics', `${info.slug}.md`)
+  )
+)
+const walk = (dir) =>
+  fs.existsSync(dir)
+    ? fs
+        .readdirSync(dir, { withFileTypes: true })
+        .flatMap((e) =>
+          e.isDirectory() ? walk(path.join(dir, e.name)) : [path.join(dir, e.name)]
+        )
+    : []
+const orphans = walk(DEST_DIR)
+  .filter((f) => f.endsWith('.md') && !expected.has(f))
+  .map((f) => path.relative(REPO_ROOT, f))
+  .sort()
+
 // ---- 报告 ----
 console.log(`源目录: ${SRC_DIR}`)
 console.log(`新增 ${stats.added.length} / 更新 ${stats.updated.length} / 未变 ${stats.unchanged.length} / 跳过 ${stats.skipped.length}`)
 if (stats.added.length) console.log(`[+] ${stats.added.join('\n[+] ')}`)
 if (stats.updated.length) console.log(`[~] ${stats.updated.join('\n[~] ')}`)
 if (stats.skipped.length) console.log(`[S] 跳过（命名不符）:\n    ${stats.skipped.join('\n    ')}`)
+if (orphans.length) console.log(`[?] 孤儿副本（源已删除/改名，确认后手动清理）:\n    ${orphans.join('\n    ')}`)
 if (stats.warnings.length) {
   console.log(`[!] 警告 ${stats.warnings.length} 条:`)
   for (const w of stats.warnings) console.log(`    ${w}`)
