@@ -1,3 +1,4 @@
 node_modules/**
 src/icons/**
 public/scripts/*
+src/content/tracking/**

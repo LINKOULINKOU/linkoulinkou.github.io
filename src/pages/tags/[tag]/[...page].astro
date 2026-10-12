@@ -12,7 +12,8 @@ export const prerender = true
 
 export const getStaticPaths: GetStaticPaths = async ({ paginate }) => {
   const allPosts = await getBlogCollection()
-  const allPostsByDate = sortMDByDate(allPosts)
+  // sortMDByDate 的返回类型会被放宽为全部集合的联合，这里收窄回 blog（同 rss.xml.ts）
+  const allPostsByDate = sortMDByDate(allPosts) as CollectionEntry<'blog'>[]
   const uniqueTags = getUniqueTags(allPostsByDate)
 
   return uniqueTags.flatMap((tag) => {

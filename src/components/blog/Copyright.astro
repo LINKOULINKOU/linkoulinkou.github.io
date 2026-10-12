@@ -1,13 +1,15 @@
 ---
-import type { CollectionKey, InferEntrySchema } from 'astro:content'
+import type { InferEntrySchema } from 'astro:content'
 
 import { QRCode } from 'astro-pure/advanced'
 import { Icon } from 'astro-pure/user'
 import { cn, getFormattedDate } from 'astro-pure/utils'
 import config from 'virtual:config'
 
-interface Props<T extends CollectionKey> {
-  data: InferEntrySchema<T>
+// 注：原主题此处为泛型 Props<T extends CollectionKey>；站内出现第二个集合后
+// T 无法再收敛为单一集合、类型检查失败，这里固定为 blog（本站唯一用途）。
+interface Props {
+  data: InferEntrySchema<'blog'>
   class?: string
 }
 

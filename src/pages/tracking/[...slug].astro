@@ -1,0 +1,72 @@
+---
+import type { GetStaticPaths } from 'astro'
+import { getCollection, render } from 'astro:content'
+import { TOC } from 'astro-pure/components/pages'
+import PageLayout from '@/layouts/ContentLayout.astro'
+
+export const prerender = true
+
+export const getStaticPaths = (async () => {
+  const entries = await getCollection('tracking')
+  return entries.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry }
+  }))
+}) satisfies GetStaticPaths
+
+const { entry } = Astro.props
+const { Content, headings } = await render(entry)
+const { title, kind } = entry.data
+const dateStr = entry.id.slice(0, 10)
+const kindLabel = kind === 'hotnews' ? '热点追踪' : '专题调研'
+
+const meta = {
+  title,
+  description: `${kindLabel} · ${dateStr} · ${title}`
+}
+---
+
+<PageLayout {meta} back='/tracking'>
+  {!!headings.length && <TOC {headings} slot='sidebar' />}
+
+  <Fragment slot='header'>
+    <h1 class='text-2xl font-medium sm:mb-2 sm:text-3xl'>{title}</h1>
+    <div class='mt-4 flex flex-wrap gap-x-4 gap-y-2 text-xs leading-6 text-muted-foreground'>
+      <span>{kindLabel}</span>
+      <span>{dateStr}</span>
+    </div>
+  </Fragment>
+
+  <Content />
+</PageLayout>
+
+<style is:global>
+  /* 「调研说明」折叠框（HTML 由 scripts/sync-tracking.mjs 生成） */
+  .tracking-note {
+    margin: 1.5rem 0;
+    padding: 0.6rem 1rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: calc(1.5 * var(--radius));
+    font-size: 0.875rem;
+    line-height: 1.7;
+    color: hsl(var(--muted-foreground));
+  }
+  .tracking-note summary {
+    cursor: pointer;
+    user-select: none;
+    font-weight: 500;
+    color: hsl(var(--foreground));
+  }
+  .tracking-note summary:hover {
+    color: hsl(var(--primary));
+  }
+  .tracking-note blockquote {
+    margin: 0.75rem 0 0.25rem;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+  }
+  .tracking-note blockquote::after {
+    content: none;
+  }
+</style>

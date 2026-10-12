@@ -41,4 +41,20 @@ const blog = defineCollection({
     })
 })
 
-export const collections = { blog }
+// Define tracking collection
+// 外部研究产物（前沿追踪）同步而来，见 SITE-INDEX.md §8；目录为生成物，勿手改
+const tracking = defineCollection({
+  loader: glob({
+    base: './src/content/tracking',
+    pattern: '**/*.md',
+    // hotnews/ 与 topics/ 仅作分类展示；id 即站内 slug
+    generateId: ({ entry }) => entry.replace(/\.md$/, '').replace(/^(hotnews|topics)\//, '')
+  }),
+  schema: z.object({
+    title: z.string(),
+    date: z.coerce.date(),
+    kind: z.enum(['hotnews', 'topic'])
+  })
+})
+
+export const collections = { blog, tracking }
