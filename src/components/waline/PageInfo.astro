@@ -11,27 +11,30 @@ interface Props {
 const { comment, class: className, ...props } = Astro.props
 
 const path = Astro.url.pathname
+const active = config.integ.waline.enable && !!config.integ.waline.server
 ---
 
-<div
-  class={cn('text-base text-sm text-muted-foreground', className)}
-  id='walinePageInfo'
-  data-server-url={config.integ.waline.server}
-  data-comment={comment ? 'true' : 'false'}
-  {...props}
->
-  <span class='waline-pageview-count' data-path={path}></span> views
-  {
-    comment && (
-      <>
-        {' | '}
-        <a href='#waline'>
-          <span class='waline-comment-count' data-path={path} /> comments
-        </a>
-      </>
-    )
-  }
-</div>
+{
+  active && (
+    <div
+      class={cn('text-base text-sm text-muted-foreground', className)}
+      id='walinePageInfo'
+      data-server-url={config.integ.waline.server}
+      data-comment={comment ? 'true' : 'false'}
+      {...props}
+    >
+      <span class='waline-pageview-count' data-path={path} /> views
+      {comment && (
+        <>
+          {' | '}
+          <a href='#waline'>
+            <span class='waline-comment-count' data-path={path} /> comments
+          </a>
+        </>
+      )}
+    </div>
+  )
+}
 
 <script>
   import type { WalineAbort } from '@waline/client'

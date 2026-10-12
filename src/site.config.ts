@@ -143,11 +143,11 @@ export const integ: IntegrationUserConfig = {
       className: 'zoomable'
     }
   },
-  // Comment system
+  // Comment system（已停用：不再引用主题演示服务器；自建 Waline 后填 server 并置 enable: true）
   waline: {
-    enable: true,
-    // Server service link
-    server: 'https://astro-theme-pure-waline.arthals.ink/',
+    enable: false,
+    // Server service link（自建地址，如 https://your-waline.example.com/）
+    server: '',
     // Show meta info for comments
     showMeta: false,
     // Refer https://waline.js.org/en/guide/features/emoji.html
