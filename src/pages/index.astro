@@ -74,7 +74,12 @@ if (!images[imagePath])
                     <div class='relative flex flex-col gap-1 sm:flex-row sm:items-center'>
                       <FormattedDate class='min-w-[95px] text-xs' date={e.data.date} />
                       <div class='flex justify-between flex-grow'>
-                        <div>{e.data.title}</div>
+                        <div class='flex items-center gap-2'>
+                          <span class='shrink-0 rounded border px-1.5 text-xs leading-5 text-muted-foreground'>
+                            {e.data.kind === 'hotnews' ? '热点' : '专题'}
+                          </span>
+                          <span>{e.data.title}</span>
+                        </div>
                         <svg
                           xmlns='http://www.w3.org/2000/svg'
                           width='16'
