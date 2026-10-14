@@ -1,9 +1,10 @@
 ---
 import { Image } from 'astro:assets'
+import { getCollection } from 'astro:content'
 
 import { PostPreview } from 'astro-pure/components/pages'
 import { getBlogCollection, sortMDByDate } from 'astro-pure/server'
-import { Button } from 'astro-pure/user'
+import { Button, FormattedDate } from 'astro-pure/user'
 import PageLayout from '@/layouts/BaseLayout.astro'
 import Section from '@/components/home/Section.astro'
 import config from '@/site-config'
@@ -11,6 +12,13 @@ import config from '@/site-config'
 const MAX_POSTS = 10
 const allPosts = await getBlogCollection()
 const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS)
+
+// 最近更新：tracking 集合（工作区同步生成物，见 SITE-INDEX §8）最新几条
+const MAX_UPDATES = 5
+const trackingEntries = await getCollection('tracking')
+const recentUpdates = [...trackingEntries]
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, MAX_UPDATES)
 
 const imagePath = config.logo.src
 const images = import.meta.glob<{ default: ImageMetadata }>(
@@ -48,6 +56,55 @@ if (!images[imagePath])
               ))}
             </ul>
             <Button title='More posts' class='w-fit self-end' href='/blog' variant='ahead' />
+          </Section>
+        )
+      }
+
+      {
+        recentUpdates.length > 0 && (
+          <Section title='Recent Updates'>
+            <ul class='flex flex-col gap-y-1.5 sm:gap-y-2'>
+              {recentUpdates.map((e) => (
+                <li class='flex flex-col gap-x-2 sm:flex-row'>
+                  <a
+                    class='group relative block w-full rounded-2xl border bg-background px-5 py-2.5 transition-colors ease-in-out hover:bg-muted hover:text-primary'
+                    href={`/tracking/${e.id}`}
+                    data-astro-prefetch
+                  >
+                    <div class='relative flex flex-col gap-1 sm:flex-row sm:items-center'>
+                      <FormattedDate class='min-w-[95px] text-xs' date={e.data.date} />
+                      <div class='flex justify-between flex-grow'>
+                        <div>{e.data.title}</div>
+                        <svg
+                          xmlns='http://www.w3.org/2000/svg'
+                          width='16'
+                          height='16'
+                          viewBox='0 0 24 24'
+                          fill='none'
+                          stroke-width='2.5'
+                          stroke-linecap='round'
+                          stroke-linejoin='round'
+                          class='my-1 stroke-muted-foreground group-hover:stroke-primary'
+                        >
+                          <line
+                            x1='5'
+                            y1='12'
+                            x2='19'
+                            y2='12'
+                            class='translate-x-4 scale-x-0 transition-all duration-300 ease-in-out group-hover:translate-x-1 group-hover:scale-x-100'
+                          />
+                          <polyline
+                            points='12 5 19 12 12 19'
+                            class='translate-x-0 transition-all duration-300 ease-in-out group-hover:translate-x-1'
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <Button title='More updates' class='w-fit self-end' href='/tracking' variant='ahead' />
           </Section>
         )
       }
