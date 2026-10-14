@@ -1,5 +1,6 @@
 ---
 import { getCollection } from 'astro:content'
+
 import { Button } from 'astro-pure/user'
 import PageLayout from '@/layouts/BaseLayout.astro'
 
@@ -12,18 +13,24 @@ const byDateDesc = (a: (typeof entries)[number], b: (typeof entries)[number]) =>
 const hotnews = entries.filter((e) => e.data.kind === 'hotnews').sort(byDateDesc)
 const topics = entries.filter((e) => e.data.kind === 'topic').sort(byDateDesc)
 
-// 热点按月份分组（id 形如 2026-10-10，前 7 位即月份）
-const hotMonths: { key: string; label: string; items: typeof hotnews }[] = []
-for (const e of hotnews) {
-  const key = e.id.slice(0, 7)
-  let group = hotMonths.find((g) => g.key === key)
-  if (!group) {
-    const [y, m] = key.split('-')
-    group = { key, label: `${y} 年 ${Number(m)} 月`, items: [] }
-    hotMonths.push(group)
+// 按月份分组（id 形如 2026-10-10，前 7 位即月份），最新月在前。
+// 列表按月折叠、只默认展开最新月，避免条目越滚越多堆成标题墙。
+const monthGroups = (list: typeof entries) => {
+  const groups: { key: string; label: string; items: typeof entries }[] = []
+  for (const e of list) {
+    const key = e.id.slice(0, 7)
+    let group = groups.find((g) => g.key === key)
+    if (!group) {
+      const [y, m] = key.split('-')
+      group = { key, label: `${y} 年 ${Number(m)} 月`, items: [] }
+      groups.push(group)
+    }
+    group.items.push(e)
   }
-  group.items.push(e)
+  return groups
 }
+const hotMonths = monthGroups(hotnews)
+const topicMonths = monthGroups(topics)
 
 const meta = {
   title: 'Tracking',
@@ -45,14 +52,29 @@ const meta = {
         {
           hotnews.length ? (
             <div class='mt-4'>
-              {hotMonths.map((group) => (
-                <div class='mt-6 first:mt-0'>
-                  <h3 class='text-sm font-medium text-muted-foreground'>{group.label}</h3>
-                  <ul class='mt-2 flex flex-col gap-y-1.5'>
+              {hotMonths.map((group, i) => (
+                <details class='month-fold mt-6 first:mt-0' open={i === 0}>
+                  <summary class='flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary'>
+                    <svg
+                      xmlns='http://www.w3.org/2000/svg'
+                      viewBox='0 0 24 24'
+                      fill='none'
+                      stroke='currentColor'
+                      stroke-width='2'
+                      stroke-linecap='round'
+                      stroke-linejoin='round'
+                      class='chev size-4 shrink-0'
+                    >
+                      <polyline points='9 6 15 12 9 18' />
+                    </svg>
+                    <span>{group.label}</span>
+                    <span class='text-xs opacity-70'>· {group.items.length} 期</span>
+                  </summary>
+                  <ul class='ms-[22px] mt-2 flex flex-col gap-y-1.5'>
                     {group.items.map((e) => (
                       <li class='flex flex-col gap-x-3 sm:flex-row'>
                         <span class='shrink-0 text-sm leading-6 text-muted-foreground'>
-                          {e.id.slice(0, 10)}
+                          {e.id.slice(5, 10)}
                         </span>
                         <a class='leading-6 hover:text-primary' href={`/tracking/${e.id}`}>
                           {e.data.title}
@@ -60,7 +82,7 @@ const meta = {
                       </li>
                     ))}
                   </ul>
-                </div>
+                </details>
               ))}
             </div>
           ) : (
@@ -73,18 +95,40 @@ const meta = {
         <h2 class='text-xl font-medium'>专题</h2>
         {
           topics.length ? (
-            <ul class='mt-4 flex flex-col gap-y-1.5'>
-              {topics.map((e) => (
-                <li class='flex flex-col gap-x-3 sm:flex-row'>
-                  <span class='shrink-0 text-sm leading-6 text-muted-foreground'>
-                    {e.id.slice(0, 10)}
-                  </span>
-                  <a class='leading-6 hover:text-primary' href={`/tracking/${e.id}`}>
-                    {e.data.title}
-                  </a>
-                </li>
+            <div class='mt-4'>
+              {topicMonths.map((group, i) => (
+                <details class='month-fold mt-6 first:mt-0' open={i === 0}>
+                  <summary class='flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary'>
+                    <svg
+                      xmlns='http://www.w3.org/2000/svg'
+                      viewBox='0 0 24 24'
+                      fill='none'
+                      stroke='currentColor'
+                      stroke-width='2'
+                      stroke-linecap='round'
+                      stroke-linejoin='round'
+                      class='chev size-4 shrink-0'
+                    >
+                      <polyline points='9 6 15 12 9 18' />
+                    </svg>
+                    <span>{group.label}</span>
+                    <span class='text-xs opacity-70'>· {group.items.length} 篇</span>
+                  </summary>
+                  <ul class='ms-[22px] mt-2 flex flex-col gap-y-1.5'>
+                    {group.items.map((e) => (
+                      <li class='flex flex-col gap-x-3 sm:flex-row'>
+                        <span class='shrink-0 text-sm leading-6 text-muted-foreground'>
+                          {e.id.slice(5, 10)}
+                        </span>
+                        <a class='leading-6 hover:text-primary' href={`/tracking/${e.id}`}>
+                          {e.data.title}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
               ))}
-            </ul>
+            </div>
           ) : (
             <p class='mt-4 text-muted-foreground'>Nothing here.</p>
           )
@@ -93,3 +137,21 @@ const meta = {
     </div>
   </main>
 </PageLayout>
+
+<style>
+  /* 月份折叠组：去掉默认三角、箭头随开合旋转 */
+  .month-fold > summary {
+    list-style: none;
+    cursor: pointer;
+    user-select: none;
+  }
+  .month-fold > summary::-webkit-details-marker {
+    display: none;
+  }
+  .month-fold > summary .chev {
+    transition: transform 0.2s ease;
+  }
+  .month-fold[open] > summary .chev {
+    transform: rotate(90deg);
+  }
+</style>
