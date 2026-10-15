@@ -1,0 +1,277 @@
+---
+// GitHub 活动图（交互式）：数据在构建时从 jogruber API 拉取并静态渲染；
+// 客户端脚本只负责悬停提示，格子/链接/月份标签均为服务端产物。
+type Contribution = { date: string; count: number; level: number }
+
+const USER = 'LINKOULINKOU'
+const API = `https://github-contributions-api.jogruber.de/v4/${USER}?y=last`
+const profileUrl = `https://github.com/${USER}`
+
+let contributions: Contribution[] = []
+let total: number | null = null
+try {
+  const res = await fetch(API, { signal: AbortSignal.timeout(20000) })
+  if (res.ok) {
+    const json = (await res.json()) as {
+      total?: { lastYear?: number }
+      contributions?: Contribution[]
+    }
+    contributions = json.contributions ?? []
+    total = json.total?.lastYear ?? null
+  }
+} catch {
+  // 拉取失败时降级为纯链接提示，不影响构建
+}
+
+// 网格：列 = 周（周日起），行 = 星期（0=周日）
+const cells: { c: Contribution; col: number; row: number }[] = []
+if (contributions.length) {
+  const pad = new Date(`${contributions[0].date}T00:00:00Z`).getUTCDay()
+  contributions.forEach((c, i) => {
+    const idx = i + pad
+    cells.push({ c, col: Math.floor(idx / 7), row: idx % 7 })
+  })
+}
+const weeks = cells.length ? Math.max(...cells.map((x) => x.col)) + 1 : 0
+
+// 月份标签：周列首个单元格的月份变化时打一个标签
+const monthNames = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec'
+]
+const monthLabels: { col: number; label: string }[] = []
+let lastMonth = ''
+for (let col = 0; col < weeks; col++) {
+  const first = cells.find((x) => x.col === col)
+  if (!first) continue
+  const label = monthNames[Number(first.c.date.slice(5, 7)) - 1]
+  if (label !== lastMonth) {
+    lastMonth = label
+    monthLabels.push({ col, label })
+  }
+}
+---
+
+<section class='flex flex-col gap-y-3'>
+  <div class='flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1'>
+    <h2 class='text-xl font-medium'>GitHub Activities</h2>
+    <a
+      class='text-sm text-muted-foreground hover:text-primary'
+      href={profileUrl}
+      target='_blank'
+      rel='noreferrer'>在 GitHub 查看 ↗</a
+    >
+  </div>
+
+  {
+    contributions.length ? (
+      <>
+        <p class='text-sm text-muted-foreground'>
+          {total !== null ? `过去一年共 ${total} 次贡献 · ` : ''}悬停看单日数据，点击方格跳转到
+          GitHub 查看当天动态
+        </p>
+        <div class='gh-wrap'>
+          <div class='gh-months' style={`grid-template-columns: repeat(${weeks}, 10px)`}>
+            {monthLabels.map((m) => (
+              <span style={`grid-column: ${m.col + 1} / span 4`}>{m.label}</span>
+            ))}
+          </div>
+          <div class='gh-body'>
+            <div class='gh-weekdays'>
+              <span style='grid-row: 2'>Mon</span>
+              <span style='grid-row: 4'>Wed</span>
+              <span style='grid-row: 6'>Fri</span>
+            </div>
+            <div
+              class='gh-grid'
+              data-gh-calendar
+              style={`grid-template-columns: repeat(${weeks}, 10px)`}
+            >
+              {cells.map(({ c, col, row }) => (
+                <a
+                  class={`gh-cell lv-${c.level}`}
+                  style={`grid-column: ${col + 1}; grid-row: ${row + 1};`}
+                  href={`${profileUrl}?tab=overview&from=${c.date}&to=${c.date}`}
+                  aria-label={`${c.date}：${c.count} 次贡献`}
+                  data-date={c.date}
+                  data-count={c.count}
+                />
+              ))}
+            </div>
+          </div>
+          <div class='gh-legend'>
+            <span>少</span>
+            {[0, 1, 2, 3, 4].map((lv) => (
+              <span class={`gh-cell lv-${lv}`} />
+            ))}
+            <span>多</span>
+          </div>
+        </div>
+      </>
+    ) : (
+      <p class='text-muted-foreground'>
+        贡献数据暂时未能获取 ·{' '}
+        <a class='hover:text-primary' href={profileUrl} target='_blank' rel='noreferrer'>
+          在 GitHub 查看
+        </a>
+      </p>
+    )
+  }
+
+  <div class='gh-tip' data-gh-tip aria-hidden='true'></div>
+</section>
+
+<style>
+  .gh-wrap {
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+  .gh-months {
+    display: grid;
+    gap: 3px;
+    margin-left: 32px;
+    margin-bottom: 4px;
+    font-size: 9px;
+    line-height: 10px;
+    color: hsl(var(--muted-foreground));
+  }
+  .gh-body {
+    display: flex;
+    gap: 6px;
+  }
+  .gh-weekdays {
+    display: grid;
+    grid-template-rows: repeat(7, 10px);
+    gap: 3px;
+    width: 26px;
+    font-size: 9px;
+    line-height: 10px;
+    color: hsl(var(--muted-foreground));
+  }
+  .gh-weekdays span {
+    text-align: right;
+  }
+  .gh-grid {
+    display: grid;
+    grid-template-rows: repeat(7, 10px);
+    gap: 3px;
+    width: fit-content;
+  }
+  .gh-cell {
+    display: block;
+    border-radius: 2px;
+    background: color-mix(in srgb, hsl(var(--foreground)) 7%, transparent);
+  }
+  .gh-cell.lv-1 {
+    background: color-mix(in srgb, hsl(var(--primary)) 38%, transparent);
+  }
+  .gh-cell.lv-2 {
+    background: color-mix(in srgb, hsl(var(--primary)) 58%, transparent);
+  }
+  .gh-cell.lv-3 {
+    background: color-mix(in srgb, hsl(var(--primary)) 80%, transparent);
+  }
+  .gh-cell.lv-4 {
+    background: hsl(var(--primary));
+  }
+  a.gh-cell:hover {
+    outline: 1px solid hsl(var(--foreground) / 0.45);
+  }
+  .gh-legend {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    justify-content: flex-end;
+    margin-top: 8px;
+    font-size: 9px;
+    color: hsl(var(--muted-foreground));
+  }
+  .gh-legend > span {
+    width: 10px;
+    height: 10px;
+  }
+  .gh-legend > span:first-child,
+  .gh-legend > span:last-child {
+    width: auto;
+    height: auto;
+    background: none;
+  }
+  .gh-tip {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 60;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    line-height: 20px;
+    white-space: nowrap;
+    background: hsl(var(--foreground));
+    color: hsl(var(--background));
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.12s ease;
+  }
+</style>
+
+<script>
+  const cal = document.querySelector('[data-gh-calendar]')
+  const tip = document.querySelector('[data-gh-tip]')
+  // 把浮层移到 body：避免祖先的 transform/overflow 影响 fixed 定位
+  if (tip instanceof HTMLElement) document.body.appendChild(tip)
+  const wrap = cal?.closest('.gh-wrap')
+  if (wrap instanceof HTMLElement) {
+    // 窄容器（移动端/预览面板）下默认停在最右端——先看最近几个月
+    // 多次时机重试：早期布局未定时 scrollWidth 可能还不大于 clientWidth
+    const goRight = () => {
+      if (wrap.scrollWidth > wrap.clientWidth) wrap.scrollLeft = wrap.scrollWidth
+    }
+    requestAnimationFrame(goRight)
+    window.addEventListener('load', goRight)
+    setTimeout(goRight, 300)
+  }
+  if (cal instanceof HTMLElement && tip instanceof HTMLElement) {
+    const show = (cell: HTMLElement) => {
+      const date = cell.dataset.date ?? ''
+      const count = Number(cell.dataset.count ?? '0')
+      tip.textContent = count > 0 ? `${count} 次贡献 · ${date}` : `无贡献 · ${date}`
+      const r = cell.getBoundingClientRect()
+      const left = Math.min(
+        Math.max(r.left + r.width / 2 - tip.offsetWidth / 2, 8),
+        window.innerWidth - tip.offsetWidth - 8
+      )
+      tip.style.left = `${left}px`
+      tip.style.top = `${Math.max(r.top - tip.offsetHeight - 8, 8)}px`
+      tip.style.opacity = '1'
+    }
+    const hide = () => {
+      tip.style.opacity = '0'
+    }
+    const onOver = (e: Event) => {
+      if (!(e.target instanceof Element)) return
+      const cell = e.target.closest('.gh-cell')
+      if (cell) show(cell as HTMLElement)
+    }
+    const onOut = (e: Event) => {
+      if (!(e.target instanceof Element)) return
+      const cell = e.target.closest('.gh-cell')
+      const rel = (e as MouseEvent).relatedTarget
+      const into = rel instanceof Element ? rel.closest('.gh-cell') : null
+      if (cell && !into) hide()
+    }
+    cal.addEventListener('pointerover', onOver)
+    cal.addEventListener('pointerout', onOut)
+    cal.addEventListener('mouseover', onOver)
+    cal.addEventListener('mouseout', onOut)
+  }
+</script>

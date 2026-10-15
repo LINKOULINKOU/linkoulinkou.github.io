@@ -1,18 +1,8 @@
 ---
-import { Image } from 'astro:assets'
-
 import PageLayout from '@/layouts/CommonPage.astro'
+import GitHubActivities from '@/components/projects/GitHubActivities.astro'
 ---
 
 <PageLayout title='Projects' view>
-  <p>Github Activities:</p>
-  <p>
-    <Image
-      src='https://ghchart.rshah.org/659eb9/LINKOULINKOU'
-      format='svg'
-      alt='github activities'
-      inferSize
-      loading='lazy'
-    />
-  </p>
+  <GitHubActivities />
 </PageLayout>
