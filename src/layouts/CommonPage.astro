@@ -3,7 +3,8 @@ import type { MarkdownHeading } from 'astro'
 
 import { TOC } from 'astro-pure/components/pages'
 import PageLayout from '@/layouts/ContentLayout.astro'
-import { Comment, PageInfo } from '@/components/waline'
+import PageViews from '@/components/views/PageViews.astro'
+import { Comment } from '@/components/waline'
 import config from 'virtual:config'
 
 interface Props {
@@ -21,7 +22,7 @@ const { title, headings, view, comment: enableComment, ...props } = Astro.props
 
   <Fragment slot='header'>
     <h1 class='text-2xl font-medium sm:mb-2 sm:text-3xl'>{title}</h1>
-    {view && config.integ.waline.enable && <PageInfo comment={enableComment} class='italic' />}
+    {view && <PageViews class='italic' />}
   </Fragment>
 
   <slot />

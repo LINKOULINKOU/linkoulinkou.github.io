@@ -1,0 +1,17 @@
+---
+// 浏览数：Vercount（不蒜子系替代，POST 计数、免注册、国内 CDN）。
+// 脚本按 span id 填充数值；若日后换回不蒜子原版，只要改 script 地址与 span 前缀。
+// 机制与显示点说明见 SITE-INDEX.md。
+import { cn } from 'astro-pure/utils'
+
+interface Props {
+  class?: string
+}
+const { class: className } = Astro.props
+---
+
+<div class={cn('text-sm text-muted-foreground', className)}>
+  <span id='vercount_value_page_pv'>…</span> views
+</div>
+
+<script is:inline defer src='https://vercount.one/js'></script>
