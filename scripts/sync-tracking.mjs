@@ -17,6 +17,7 @@
  *   5. 金额 $ 转义为 \$（跳过代码块与行内代码），避免 remark-math 误判为公式
  *   6. 内容不变则不写盘；名称不符合约定的文件跳过并警告
  *   7. 报告站内孤儿副本（源已删除/改名而站内残留的生成物，只报告不删除）
+ *   8. 同日多窗口：`YYYY-MM-DD-热点追踪-<n>.md` 映射为 slug `YYYY-MM-DD-<n>`（同日独立第二份报告用）
  */
 import fs from 'node:fs'
 import path from 'node:path'
@@ -26,9 +27,9 @@ const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..
 const SRC_DIR = path.resolve(process.env.TRACKING_SRC ?? 'D:/学习笔记/前沿追踪/hot news')
 const DEST_DIR = path.join(REPO_ROOT, 'src/content/tracking')
 
-const HOT_RE = /^(\d{4}-\d{2}-\d{2})-热点追踪\.md$/
+const HOT_RE = /^(\d{4}-\d{2}-\d{2})-热点追踪(?:-(\d+))?\.md$/
 const TOPIC_RE = /^(\d{4}-\d{2}-\d{2})-专题-(.+)\.md$/
-const REF_RE = /20\d{2}-\d{2}-\d{2}-(?:热点追踪|专题-[^)\s\]]+?)\.md/g
+const REF_RE = /20\d{2}-\d{2}-\d{2}-(?:热点追踪(?:-\d+)?|专题-[^)\s\]]+?)\.md/g
 
 const stats = { added: [], updated: [], unchanged: [], skipped: [], warnings: [] }
 const warn = (file, msg) => stats.warnings.push(`${file}: ${msg}`)
@@ -43,7 +44,7 @@ const SOURCES = fs.readdirSync(SRC_DIR).filter((f) => f.endsWith('.md'))
 /** 源文件名 -> {kind, date, slug}；命名不符返回 null */
 function classify(fileName) {
   const hot = fileName.match(HOT_RE)
-  if (hot) return { kind: 'hotnews', date: hot[1], slug: hot[1] }
+  if (hot) return { kind: 'hotnews', date: hot[1], slug: hot[2] ? `${hot[1]}-${hot[2]}` : hot[1] }
   const topic = fileName.match(TOPIC_RE)
   if (topic) return { kind: 'topic', date: topic[1], slug: `${topic[1]}-${topic[2]}` }
   return null
@@ -69,7 +70,7 @@ const yamlQuote = (s) => `'${s.replace(/'/g, "''")}'`
 function rewriteReferences(md, fileName) {
   // A. 链接目标 ](name.md) -> ](/tracking/slug)
   md = md.replace(
-    /\]\((?:\.\/)?(20\d{2}-\d{2}-\d{2}-(?:热点追踪|专题-[^)#\s]+?))\.md(#[^)\s]*)?\)/g,
+    /\]\((?:\.\/)?(20\d{2}-\d{2}-\d{2}-(?:热点追踪(?:-\d+)?|专题-[^)#\s]+?))\.md(#[^)\s]*)?\)/g,
     (whole, name, hash = '') => {
       const url = refToSiteUrl(`${name}.md`)
       if (!url) {
@@ -81,11 +82,11 @@ function rewriteReferences(md, fileName) {
   )
   // B. 链接标签 [name.md](...) -> [name](...)
   md = md.replace(
-    /\[(20\d{2}-\d{2}-\d{2}-(?:热点追踪|专题-[^\]]+?))\.md\](?=\()/g,
+    /\[(20\d{2}-\d{2}-\d{2}-(?:热点追踪(?:-\d+)?|专题-[^\]]+?))\.md\](?=\()/g,
     (whole, name) => (refToSiteUrl(`${name}.md`) ? `[${name}]` : whole)
   )
   // C. 裸引用（不在方括号内）：补站内链接并去掉 .md
-  md = md.replace(/(?<!\[)20\d{2}-\d{2}-\d{2}-(?:热点追踪|专题-[^)\s\]]+?)\.md/g, (whole) => {
+  md = md.replace(/(?<!\[)20\d{2}-\d{2}-\d{2}-(?:热点追踪(?:-\d+)?|专题-[^)\s\]]+?)\.md/g, (whole) => {
     const url = refToSiteUrl(whole)
     if (!url) {
       warn(fileName, `裸引用不在源清单：${whole}`)
