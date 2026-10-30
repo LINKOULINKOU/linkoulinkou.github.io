@@ -278,3 +278,74 @@ kind: topic
     c.cleanup()
   }
 })
+
+const WITH_COVERAGE = `# 热点追踪｜2026-10-21｜覆盖说明不进生成物
+
+> 调研日期：2026-10-21
+
+## 本期值得了解
+
+### 1. 正文小标题
+
+正文一段。
+
+## 检索覆盖说明
+
+- 增量基准：仅工作区可见
+- HN 检出：仅工作区可见
+
+### 7. 待核实线索
+
+这条在覆盖说明之后，不应被误删。
+`
+
+const WITH_COVERAGE_MIDDLE = `# 热点追踪｜2026-10-22｜覆盖说明在中间
+
+> 调研日期：2026-10-22
+
+## 本期值得了解
+
+正文一段。
+
+## 检索覆盖说明
+
+- 内部记录
+
+## 其他值得关注
+
+覆盖说明之后的板块保留。
+`
+
+test('检索覆盖说明整节不写入生成物，原稿不改', () => {
+  const c = makeCase('coverage')
+  try {
+    writeSource(c.src, '2026-10-21-热点追踪.md', WITH_COVERAGE)
+    writeSource(c.src, '2026-10-22-热点追踪.md', WITH_COVERAGE_MIDDLE)
+
+    const plan = planTracking({
+      repoRoot: c.repo,
+      srcDir: c.src,
+      files: ['2026-10-21-热点追踪.md', '2026-10-22-热点追踪.md']
+    })
+    assert.deepEqual(plan.errors, [])
+    const [tail, middle] = plan.files
+    assert.equal(tail.file, '2026-10-21-热点追踪.md')
+
+    // 覆盖说明在末尾：整节删除，其后的三级标题不属于该节
+    assert.ok(!tail.output.includes('检索覆盖说明'), tail.output)
+    assert.ok(!tail.output.includes('仅工作区可见'), tail.output)
+    assert.ok(tail.output.includes('### 7. 待核实线索'))
+    assert.ok(tail.output.trimEnd().endsWith('这条在覆盖说明之后，不应被误删。'))
+
+    // 覆盖说明在中间：只删该节，后面的二级标题与正文保留
+    assert.ok(!middle.output.includes('检索覆盖说明'))
+    assert.ok(!middle.output.includes('内部记录'))
+    assert.ok(middle.output.includes('## 其他值得关注'))
+    assert.ok(middle.output.includes('覆盖说明之后的板块保留。'))
+
+    // 原稿不被修改
+    assert.equal(fs.readFileSync(path.join(c.src, '2026-10-21-热点追踪.md'), 'utf8'), WITH_COVERAGE)
+  } finally {
+    c.cleanup()
+  }
+})

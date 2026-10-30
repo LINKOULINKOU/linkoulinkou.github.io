@@ -80,6 +80,32 @@ function rewriteReferences(md, fileName, classified, warn) {
   return md
 }
 
+/**
+ * 去掉「检索覆盖说明」整节：该节只留在工作区原稿，不作为对外内容发布。
+ * 删到下一个标题（一至三级）为止；顺带清掉遗留的空行与孤立分隔线。
+ */
+function stripCoverageSection(body) {
+  const lines = body.split('\n')
+  const start = lines.findIndex((line) => /^##\s*检索覆盖说明\s*$/.test(line))
+  if (start === -1) return { body, removed: false }
+  let end = lines.length
+  for (let i = start + 1; i < lines.length; i++) {
+    if (/^#{1,3}\s+/.test(lines[i])) {
+      end = i
+      break
+    }
+  }
+  const head = lines.slice(0, start)
+  while (head.length && head[head.length - 1].trim() === '') head.pop()
+  while (head.length && head[head.length - 1].trim() === '---') {
+    head.pop()
+    while (head.length && head[head.length - 1].trim() === '') head.pop()
+  }
+  const tail = lines.slice(end)
+  const merged = tail.length ? [...head, '', ...tail] : head
+  return { body: merged.join('\n'), removed: true }
+}
+
 /** 文件头部的调研信息引用块（连续 > 行）折叠为 <details> */
 function foldHeaderNote(body) {
   const lines = body.split('\n')
@@ -166,6 +192,7 @@ function convertSource(fileName, raw, classified, warn) {
   }
 
   let body = lines.slice(h1Index + 1).join('\n')
+  body = stripCoverageSection(body).body
   body = rewriteReferences(body, fileName, classified, warn)
   const { md: escapedBody, unclosedFence, oddBackticks } = escapeDollars(body)
   if (unclosedFence) warn(fileName, '代码围栏未闭合（$ 转义已按行状态处理，请核查该文件）')
