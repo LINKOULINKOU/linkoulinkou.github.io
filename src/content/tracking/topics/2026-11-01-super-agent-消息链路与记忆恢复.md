@@ -7,20 +7,47 @@ kind: topic
 <details class="tracking-note">
 <summary>调研说明（时间窗、覆盖缺口与调研方式）</summary>
 
-> 调研日期：2026-11-01；最近修订：2026-11-01 03:05（Asia/Shanghai）
-> 本次操作：依据已完成的材料核验整理专题，并按读者反馈重写表达；本次改写不新增外部检索。
+> 调研日期：2026-11-01；最近修订：2026-11-02 13:28（Asia/Shanghai）
+> 本次操作：经用户授权修订原专题，按讨论、工单、执行会话及工作现场的关系重组讲解；沿用 2026-11-01 已核材料，本次未重新核查外部来源或更新版本结论。
 > 材料范围：DeepSeek 团队 2026-10-31 的设计文章及公开原型提交 `6337fc823ce20251c8de8085948165c81aaa701e`（2026-10-31）。文章通过全文转载阅读；实现细节来自该提交的文档、提示词和源码，未运行原型。
 > 项目状态：公开研究原型，与团队内部版本及设计文章有所不同，部分设计仍待实现。
 
 </details>
 
-DeepSeek 的 Super-agent 可以理解为一层包在 coding agent 外部的持续工作循环：群聊、Issue、PR 和 CI 提供输入，系统把其中的工作交给独立执行会话，再将结果送回原来的讨论。
+DeepSeek 的 Super-agent 接入群聊、Issue、PR 等已有工作场合，用讨论串保留消息归属，用工单组织持续推进的任务，再交给独立会话执行。Router 在内部判断新任务、建立关联和处理必要协调；后续讨论通过订阅继续送达执行者。
 
-它把团队日常推进工作的方式接到了 agent 上。人可以在飞书里提出需求，到 GitHub 上继续讨论；后台同时推进几项工作，人只在需要决策和验收时介入。系统负责维护这些讨论、任务和执行会话之间的联系。
+人可以在飞书里提出需求，到 GitHub 上继续评审；后台同时推进几项工作。系统维护讨论、任务和执行会话之间的联系，让工作沿这些关系持续进行。
 
-理解这套框架，最直接的办法是跟着一项工作走一遍。下面用“增加字体设置”作为贯穿案例，再展开它怎样回查历史，以及当前的恢复机制能保留哪些过程信息。
+下面先分清这几层关系，再跟着“增加字体设置”走一遍消息链路和历史回查。最后把它放回仓库、机器、权限和规范共同组成的工作现场，说明恢复机制怎样保存任务进展与过程经验。
 
-## 1. 一条飞书消息怎样走到代码修改
+## 1. 讨论、工单与执行会话怎样划分工作
+
+一项工作在系统里有几种不同的身份：
+
+| 层次 | 表达的内容 | 字体设置的例子 |
+| --- | --- | --- |
+| 接入来源（Source） | 监听范围、接入身份及读位点 | 接入编辑器仓库和相关飞书群 |
+| 消息串（Thread） | 同一话题下按时间排列的事件 | 飞书里的字体讨论，或字体 PR 的讨论 |
+| 工单（Ticket） | 已接下的任务、授权范围和持续状态 | 完成字体设置这项工作 |
+| 执行会话（Worker） | 当前承担技术工作的执行者 | 在独立目录里调查、修改和验证 |
+
+Thread 为消息提供讨论归属，Ticket 为工作提供长期身份。讨论可以先存在，系统在其中识别出任务后再建立工单。工单随后订阅有关的讨论串，持续接收新输入。
+
+它们是多对多关系。一张工单可以同时连接原飞书话题和实现它的 GitHub PR；一个讨论串也可以关联多张工单。读取 Thread 时看到的工单列表，来自这些关联关系。
+
+```text
+飞书里的字体话题 ─┐
+                  ├─ 字体设置工单 → Worker
+GitHub 的字体 PR ─┘
+```
+
+这种组织保留了外部场合的线索：人在具体话题或 PR 下发言，消息随之带上所属 Thread。已订阅的后续消息可以按程序记录的关系送达。
+
+Router 是内部调度层。用户仍可以在不同群、话题和 PR 中与系统交互；原型用一个常驻主会话实现调度，与用户面对哪些交互入口是两层安排。Router 主要在新工作出现、归属尚待确定或需要协调时作出判断。
+
+依据：[消息串、工单与订阅的领域关系](https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/docs/001-domain.md#L25-L43)、[设计文章第 2 节：Router 与 Worker](https://www.chaincatcher.com/en/article/2300676)。
+
+## 2. 一条飞书消息怎样走到代码修改
 
 假设一位有发起工作权限的成员在飞书群里说：
 
@@ -86,7 +113,7 @@ Source 接收消息 → 整理为 Trigger → 归入 Thread
 
 依据：[领域模型](https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/docs/001-domain.md#L5-L43)、[两类候选的处理](https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/docs/002-authorization.md#L83-L105)、[派工职责](https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/prompts/dispatch.md#L5-L14)。
 
-## 2. 后续讨论怎样接回正在进行的工作
+## 3. 后续讨论怎样接回正在进行的工作
 
 Worker 开始修改后，群里又补了一句：
 
@@ -110,11 +137,11 @@ Worker 开出 PR 后，Source 可以把 PR 关联到这张工单。人再到 Git
 
 依据：[订阅和续话规则](https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/docs/002-authorization.md#L18-L44)、[收件与投递实现](https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/intake.ts#L30-L59)。
 
-## 3. 链式回查怎样一步步展开历史
+## 4. 沿工作关系，怎样一步步查回历史
 
-前面解决了新消息送给谁。运行时间长了，还会遇到另一类需求：当前消息引用了以前的决定，需要把历史找回来。
+字体工单同时关联飞书话题和 GitHub PR，系统因此有了一条从当前评审回到原需求的路径。工单还连接输入、报告和执行历史，需要背景时可以继续沿这些关系读取。
 
-原型把消息、讨论串、工单和报告等对象关联起来，为模型提供按 ID 读取的工具。这就是**链式回查（Chain of Recall）**：从当前已有的线索出发，每读到一个对象，再沿它返回的引用取下一份材料。
+这就是**链式回查（Chain of Recall）**：模型从当前线索出发，每读到一个对象，再沿它返回的 ID 和读取入口取下一份材料。下面先看这些材料的存放位置，再实际走一遍从 PR 评论回到飞书决定的过程。
 
 ### 信息分别放在哪里
 
@@ -199,7 +226,7 @@ Router 在工具层面也有读取这些历史的入口。它日常主要使用�
 
 依据：[上下文预算与读取范围](https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/docs/007-architecture.md#L534-L593)、[输入投递的整体截断](https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/executor/dsh.ts#L329-L342)、[部署权限](https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/docs/006-deployment.md#L13-L19)。
 
-## 4. 主动工作从哪些环境信号开始
+## 5. 主动工作从哪些环境信号开始
 
 事件入口让系统持续接触团队的工作环境。在此基础上，模型可以从讨论中识别已经形成的改动意图，按规则接单。
 
@@ -232,7 +259,33 @@ Source 配置负责观察范围。GitHub 的 `repository` 指定仓库，`cli` �
 
 依据：[Source 配置字段](https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/sources/github.ts#L25-L61)、[接单模式](https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/docs/002-authorization.md#L91-L105)、[默认规则与接单条件](https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/policy.ts#L18-L64)、[主动范围](https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/prompts/admission.md#L17-L56)、[设计文章第 3.4 节](https://www.chaincatcher.com/en/article/2300676)。
 
-## 5. 执行中断以后，怎样继续这张工单
+## 6. 把讨论和工单放回完整的工作现场
+
+执行一项工程任务，还需要知道仓库在哪里、使用哪台机器、允许操作什么，以及遵守哪些规范。这里把这一组材料称为**工作上下文（Working Context）**，用它描述工作的完整现场。
+
+可以按几个具体问题展开：
+
+| 问题 | 需要的材料 |
+| --- | --- |
+| 在哪里做？ | 仓库、机器、目录、依赖和工具链 |
+| 以什么身份做，能做什么？ | 接入账号、执行凭据、工具权限和任务授权范围 |
+| 按什么规矩做？ | 仓库规范、评审要求、人工确认条件 |
+| 当前以什么为准？ | 需求、已确认决定、进度、证据和已尝试方案 |
+| 跟哪些人或执行者协作？ | 任务分工、讨论位置和交接关系 |
+
+一个项目可以同时包含许多话题、PR 和工单，它们使用相同的一部分现场信息，并各自保留任务目标与过程记录。Thread 负责讨论归属，工单负责工作身份，工作上下文把这项工作所用的环境、规则和历史一起纳入视野。
+
+例如，字体设置工单关联飞书和 PR，执行者在编辑器仓库的目录里修改代码，遵守仓库规范，以配置的账号提交。人打开 PR 讨论时能确定当前议题；系统还需按照工单和部署配置取得正确的执行现场。
+
+原型已经分别用来源配置、执行环境、授权记录、提示词和历史对象表达其中的若干部分。“工作上下文”在这里是帮助理解整体关系的分析概念，相关信息仍分布在这些具体机制中。
+
+群聊可以成为人选择工作现场的可见入口。项目群绑定仓库、文档和环境后，人在群里发言便提供了明确的项目线索；具体话题和工单再细分正在推进的工作。执行侧的权限由账号、工具和环境配置落实。交互位置、任务归属、执行边界因而可以分别管理，再通过显式关系连接起来。
+
+更长期的状态维护也发生在这个层次。飞书先决定方案 A，PR 后来确认方案 B，回查能找回两次讨论。进一步管理多项并行工作时，还需要表达当前采用哪个决定，以及哪些任务需要收到变化。这可以作为现有引用与投递机制继续发展的方向。
+
+依据：[部署中的仓库、账号与执行环境](https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/docs/006-deployment.md#L143-L157)、[授权与输入的领域关系](https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/docs/001-domain.md#L25-L43)。本节的整体划分及后续方向是基于这些机制的分析。
+
+## 7. 执行中断以后，怎样继续这张工单
 
 原型将任务状态保存在会话之外。数据库里记录了工单、授权、派工、输入、报告、订阅和待执行操作，系统重启后可以据此找到仍需推进的工作。
 
@@ -272,7 +325,7 @@ Source 配置负责观察范围。GitHub 的 `repository` 指定仓库，`cli` �
 
 依据：[重试和重启](https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/docs/003-execution.md#L118-L159)、[会话缺失时重建](https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/app/sessions.ts#L137-L159)、[派工时补发任务](https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/executor/dsh.ts#L449-L468)、[输入投递时重建](https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/executor/dsh.ts#L299-L342)、[阻碍报告要求](https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/prompts/work.md#L21-L36)、[报告更新](https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/assignments.ts#L110-L127)、[压缩配置](https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/cordis.patch.yml#L79-L95)。
 
-## 6. 把它放回团队的工作方式里看
+## 8. 把它放回团队的工作方式里看
 
 这套原型来自团队日常开发实践。它在 coding agent 之上固定了一种分工：外层接收环境事件、组织任务和对外交接，内层在独立会话里完成技术工作。
 
@@ -296,8 +349,8 @@ Source 配置负责观察范围。GitHub 的 `repository` 指定仓库，`cli` �
 
 文章讨论了计算、状态和执行环境分离，以及独立 Watchdog 检查任务进展。公开版目前主要按独立 DSH profile、本机进程和 tmux 部署，文档还提供了在另一个 profile 中创建定时巡检任务的方法。完整的云端计算、端侧 daemon 和跨设备 BYOM 属于更广的设计方向。
 
-从使用体验看，它想减少的是人对单个会话的盯守：在工作发生的地方提出要求，后续讨论继续进入任务，需要决策时再回来。工单、订阅和回查承担了中间的衔接。
+从使用体验看，人可以在已有工作场合提出要求，通过具体话题继续讨论，在需要决策时回来。Thread 保留讨论归属，工单维持工作身份，订阅投递后续消息，回查带回历史背景。执行会话承担技术工作，随任务推进而启动、等待或恢复。
 
-这套探索已经给出了清楚的消息流和任务组织方式。接下来值得继续看的，是它怎样保存更长时间的工作经验，以及在任务耦合变强以后，怎样维持这种轻量分工。
+这套探索已经给出了清楚的消息流和任务组织方式。后续的发展可以沿两条线继续：一条是把仓库、环境、权限和当前决定之间的关系表达得更清楚，另一条是让任务内经验在长时间运行和执行恢复中持续保留下来。
 
 依据：[原型定位](https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/README.md#L3-L9)、[设计文章第 2、7、8 节](https://www.chaincatcher.com/en/article/2300676)、[当前部署方式](https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/docs/006-deployment.md#L5-L26)、[巡检任务](https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/docs/006-deployment.md#L133-L141)。实验为作者自报，未独立复现。
