@@ -76,7 +76,7 @@ if (!images[imagePath])
                       <div class='flex justify-between flex-grow'>
                         <div class='flex items-center gap-2'>
                           <span class='shrink-0 rounded border px-1.5 text-xs leading-5 text-muted-foreground'>
-                            {e.data.kind === 'hotnews' ? '热点' : '专题'}
+                            {{ hotnews: '热点', topic: '专题', release: '发布线' }[e.data.kind]}
                           </span>
                           <span>{e.data.title}</span>
                         </div>

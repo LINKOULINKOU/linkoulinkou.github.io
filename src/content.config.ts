@@ -47,13 +47,14 @@ const tracking = defineCollection({
   loader: glob({
     base: './src/content/tracking',
     pattern: '**/*.md',
-    // hotnews/ 与 topics/ 仅作分类展示；id 即站内 slug
-    generateId: ({ entry }) => entry.replace(/\.md$/, '').replace(/^(hotnews|topics)\//, '')
+    // 分类目录不进入 URL；id 即站内 slug
+    generateId: ({ entry }) =>
+      entry.replace(/\.md$/, '').replace(/^(hotnews|topics|releases)\//, '')
   }),
   schema: z.object({
     title: z.string(),
     date: z.coerce.date(),
-    kind: z.enum(['hotnews', 'topic'])
+    kind: z.enum(['hotnews', 'topic', 'release'])
   })
 })
 

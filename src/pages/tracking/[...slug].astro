@@ -1,8 +1,13 @@
 ---
 import type { GetStaticPaths } from 'astro'
-import { getCollection, render } from 'astro:content'
+import { getCollection, render, type CollectionEntry } from 'astro:content'
+
 import { TOC } from 'astro-pure/components/pages'
 import PageLayout from '@/layouts/ContentLayout.astro'
+
+interface Props {
+  entry: CollectionEntry<'tracking'>
+}
 
 export const prerender = true
 
@@ -18,7 +23,8 @@ const { entry } = Astro.props
 const { Content, headings } = await render(entry)
 const { title, kind } = entry.data
 const dateStr = entry.id.slice(0, 10)
-const kindLabel = kind === 'hotnews' ? '热点追踪' : '专题调研'
+const kindLabel = { hotnews: '热点追踪', topic: '专题调研', release: '发布线' }[kind]
+const back = kind === 'release' ? '/tracking/releases' : '/tracking'
 
 const meta = {
   title,
@@ -26,7 +32,7 @@ const meta = {
 }
 ---
 
-<PageLayout {meta} back='/tracking'>
+<PageLayout {meta} {back}>
   {!!headings.length && <TOC {headings} slot='sidebar' />}
 
   <Fragment slot='header'>

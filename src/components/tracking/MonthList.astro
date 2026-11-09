@@ -1,0 +1,84 @@
+---
+import type { CollectionEntry } from 'astro:content'
+
+interface Props {
+  entries: CollectionEntry<'tracking'>[]
+  emptyMessage: string
+  unit?: string
+}
+
+const { entries, emptyMessage, unit = '篇' } = Astro.props
+
+// 各分类共用月折叠列表，按日期倒序，默认只展开最新月。
+const groups: { key: string; label: string; items: typeof entries }[] = []
+for (const entry of [...entries].sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())) {
+  const key = entry.id.slice(0, 7)
+  let group = groups.find((item) => item.key === key)
+  if (!group) {
+    const [year, month] = key.split('-')
+    group = { key, label: `${year} 年 ${Number(month)} 月`, items: [] }
+    groups.push(group)
+  }
+  group.items.push(entry)
+}
+---
+
+{
+  entries.length ? (
+    <div class='mt-4'>
+      {groups.map((group, i) => (
+        <details class='month-fold mt-6 first:mt-0' open={i === 0}>
+          <summary class='flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary'>
+            <svg
+              xmlns='http://www.w3.org/2000/svg'
+              viewBox='0 0 24 24'
+              fill='none'
+              stroke='currentColor'
+              stroke-width='2'
+              stroke-linecap='round'
+              stroke-linejoin='round'
+              class='chev size-4 shrink-0'
+            >
+              <polyline points='9 6 15 12 9 18' />
+            </svg>
+            <span>{group.label}</span>
+            <span class='text-xs opacity-70'>
+              · {group.items.length} {unit}
+            </span>
+          </summary>
+          <ul class='ms-[22px] mt-2 flex flex-col gap-y-1.5'>
+            {group.items.map((entry) => (
+              <li class='flex flex-col gap-x-3 sm:flex-row'>
+                <span class='shrink-0 text-sm leading-6 text-muted-foreground'>
+                  {entry.id.slice(5, 10)}
+                </span>
+                <a class='leading-6 hover:text-primary' href={`/tracking/${entry.id}`}>
+                  {entry.data.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </details>
+      ))}
+    </div>
+  ) : (
+    <p class='mt-4 text-muted-foreground'>{emptyMessage}</p>
+  )
+}
+
+<style>
+  .month-fold > summary {
+    list-style: none;
+    cursor: pointer;
+    user-select: none;
+  }
+  .month-fold > summary::-webkit-details-marker {
+    display: none;
+  }
+  .month-fold > summary .chev {
+    transition: transform 0.2s ease;
+  }
+  .month-fold[open] > summary .chev {
+    transform: rotate(90deg);
+  }
+</style>

@@ -3,7 +3,7 @@
  * 前沿追踪产物 -> 博客站点 单向同步脚本（幂等）
  *
  * 源（唯一事实源，只读）：D:/学习笔记/前沿追踪/hot news/*.md
- * 目标（生成物，勿手改） ：<repo>/src/content/tracking/{hotnews,topics}/*.md
+ * 目标（生成物，勿手改） ：<repo>/src/content/tracking/{hotnews,topics,releases}/*.md
  *
  * 用法：bun scripts/sync-tracking.mjs
  *   TRACKING_SRC=/path/to/dir 可覆盖源目录
@@ -21,6 +21,7 @@
  *   6. 内容不变则不写盘；名称不符合约定的文件跳过并警告
  *   7. 报告站内孤儿副本（源已删除/改名而站内残留的生成物，只报告不删除）
  *   8. 同日多窗口：`YYYY-MM-DD-热点追踪-<n>.md` 映射为 slug `YYYY-MM-DD-<n>`（同日独立第二份报告用）
+ *   9. 发布线：`YYYY-MM-DD-发布追踪.md` 映射为 releases/YYYY-MM-DD-releases.md
  */
 import fs from 'node:fs'
 import path from 'node:path'
@@ -32,7 +33,8 @@ export const DEFAULT_TRACKING_SRC = 'D:/学习笔记/前沿追踪/hot news'
 
 export const HOT_RE = /^(\d{4}-\d{2}-\d{2})-热点追踪(?:-(\d+))?\.md$/
 export const TOPIC_RE = /^(\d{4}-\d{2}-\d{2})-专题-(.+)\.md$/
-const REF_RE = /20\d{2}-\d{2}-\d{2}-(?:热点追踪(?:-\d+)?|专题-[^)\s\]]+?)\.md/g
+export const RELEASE_RE = /^(\d{4}-\d{2}-\d{2})-发布追踪\.md$/
+const REF_RE = /20\d{2}-\d{2}-\d{2}-(?:热点追踪(?:-\d+)?|发布追踪|专题-[^)\s\]]+?)\.md/g
 
 /** 源文件名 -> {kind, date, slug}；命名不符返回 null */
 export function classifyTrackingFile(fileName) {
@@ -40,6 +42,8 @@ export function classifyTrackingFile(fileName) {
   if (hot) return { kind: 'hotnews', date: hot[1], slug: hot[2] ? `${hot[1]}-${hot[2]}` : hot[1] }
   const topic = fileName.match(TOPIC_RE)
   if (topic) return { kind: 'topic', date: topic[1], slug: `${topic[1]}-${topic[2]}` }
+  const release = fileName.match(RELEASE_RE)
+  if (release) return { kind: 'release', date: release[1], slug: `${release[1]}-releases` }
   return null
 }
 
@@ -53,7 +57,7 @@ function rewriteReferences(md, fileName, classified, warn) {
   }
   // A. 链接目标 ](name.md) -> ](/tracking/slug)
   md = md.replace(
-    /\]\((?:\.\/)?(20\d{2}-\d{2}-\d{2}-(?:热点追踪(?:-\d+)?|专题-[^)#\s]+?))\.md(#[^)\s]*)?\)/g,
+    /\]\((?:\.\/)?(20\d{2}-\d{2}-\d{2}-(?:热点追踪(?:-\d+)?|发布追踪|专题-[^)#\s]+?))\.md(#[^)\s]*)?\)/g,
     (whole, name, hash = '') => {
       const url = refToSiteUrl(`${name}.md`)
       if (!url) {
@@ -65,11 +69,11 @@ function rewriteReferences(md, fileName, classified, warn) {
   )
   // B. 链接标签 [name.md](...) -> [name](...)
   md = md.replace(
-    /\[(20\d{2}-\d{2}-\d{2}-(?:热点追踪(?:-\d+)?|专题-[^\]]+?))\.md\](?=\()/g,
+    /\[(20\d{2}-\d{2}-\d{2}-(?:热点追踪(?:-\d+)?|发布追踪|专题-[^\]]+?))\.md\](?=\()/g,
     (whole, name) => (refToSiteUrl(`${name}.md`) ? `[${name}]` : whole)
   )
   // C. 裸引用（不在方括号内）：补站内链接并去掉 .md
-  md = md.replace(/(?<!\[)20\d{2}-\d{2}-\d{2}-(?:热点追踪(?:-\d+)?|专题-[^)\s\]]+?)\.md/g, (whole) => {
+  md = md.replace(/(?<!\[)20\d{2}-\d{2}-\d{2}-(?:热点追踪(?:-\d+)?|发布追踪|专题-[^)\s\]]+?)\.md/g, (whole) => {
     const url = refToSiteUrl(whole)
     if (!url) {
       warn(fileName, `裸引用不在源清单：${whole}`)
@@ -177,13 +181,14 @@ function convertSource(fileName, raw, classified, warn) {
   }
   const h1Text = h1Line.replace(/^#\s+/, '').trim()
   let title = h1Text
-  if (info.kind === 'hotnews') {
-    const m = h1Text.match(/^热点追踪｜(\d{4}-\d{2}-\d{2})｜(.+)$/)
+  if (info.kind === 'hotnews' || info.kind === 'release') {
+    const prefix = info.kind === 'release' ? '发布追踪' : '热点追踪'
+    const m = h1Text.match(new RegExp(`^${prefix}｜(\\d{4}-\\d{2}-\\d{2})｜(.+)$`))
     if (m) {
       title = m[2]
       if (m[1] !== info.date) warn(fileName, `标题日期(${m[1]})与文件名日期(${info.date})不一致`)
     } else {
-      warn(fileName, `标题不符合「热点追踪｜日期｜主线」格式：${h1Text}`)
+      warn(fileName, `标题不符合「${prefix}｜日期｜主线」格式：${h1Text}`)
     }
   } else {
     const m = h1Text.match(/^专题调研｜(.+)$/)
@@ -229,8 +234,9 @@ const walk = (dir) =>
         .flatMap((e) => (e.isDirectory() ? walk(path.join(dir, e.name)) : [path.join(dir, e.name)]))
     : []
 
+const KIND_DIRS = { hotnews: 'hotnews', topic: 'topics', release: 'releases' }
 const toDestRel = (info) =>
-  path.join('src', 'content', 'tracking', info.kind === 'hotnews' ? 'hotnews' : 'topics', `${info.slug}.md`)
+  path.join('src', 'content', 'tracking', KIND_DIRS[info.kind], `${info.slug}.md`)
 
 function invalidSelectedName(fileName) {
   if (typeof fileName !== 'string' || !fileName) return '文件名必须是非空字符串'
@@ -330,9 +336,7 @@ export function planTracking({ repoRoot = DEFAULT_REPO_ROOT, srcDir, files = nul
 
   // 孤儿检测基于完整源清单（即使只选了一个文件），只报告不删除。
   const expected = new Set(
-    [...inventory.classified.values()].map((info) =>
-      path.join(destDir, info.kind === 'hotnews' ? 'hotnews' : 'topics', `${info.slug}.md`)
-    )
+    [...inventory.classified.values()].map((info) => path.join(root, toDestRel(info)))
   )
   const orphans = walk(destDir)
     .filter((f) => f.endsWith('.md') && !expected.has(f))
