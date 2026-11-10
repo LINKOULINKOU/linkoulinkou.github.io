@@ -10,7 +10,7 @@ export const prerender = true
 const releases = await getCollection('tracking', (entry) => entry.data.kind === 'release')
 const meta = {
   title: '发布线 · Tracking',
-  description: '集中记录模型与 Agent 的发布、更新；有价值的变化再由热点展开。'
+  description: '精选模型与 Agent 的重要发布、能力与使用变化；深入解读见热点。'
 }
 ---
 
@@ -20,7 +20,7 @@ const meta = {
     <div id='content-header' class='animate'>
       <h1 class='mb-2 mt-6 text-3xl font-medium sm:mt-10'>发布线</h1>
       <p class='text-sm text-muted-foreground sm:text-base'>
-        广泛收录模型与 Agent 的发布、更新；有价值的变化再由热点展开。
+        精选模型与 Agent 的重要发布、能力与使用变化；深入解读见热点。
       </p>
     </div>
     <div id='content' class='animate mt-10'>
