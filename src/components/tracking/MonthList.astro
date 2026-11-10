@@ -5,9 +5,18 @@ interface Props {
   entries: CollectionEntry<'tracking'>[]
   emptyMessage: string
   unit?: string
+  releaseView?: boolean
 }
 
-const { entries, emptyMessage, unit = '篇' } = Astro.props
+const { entries: sourceEntries, emptyMessage, unit = '篇', releaseView = false } = Astro.props
+const entries = releaseView
+  ? sourceEntries
+      .filter((entry) => entry.data.kind === 'release' ||
+        (entry.data.kind === 'hotnews' && /^##[ \t]+发布速览[ \t]*\r?$/m.test(entry.body ?? '')))
+      .map((entry) => entry.data.kind === 'hotnews'
+        ? { ...entry, id: `${entry.id}#发布速览`, data: { ...entry.data, title: '发布速览' } }
+        : entry)
+  : sourceEntries
 
 // 各分类共用月折叠列表，按日期倒序，默认只展开最新月。
 const groups: { key: string; label: string; items: typeof entries }[] = []

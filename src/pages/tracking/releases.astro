@@ -7,10 +7,10 @@ import MonthList from '@/components/tracking/MonthList.astro'
 
 export const prerender = true
 
-const releases = await getCollection('tracking', (entry) => entry.data.kind === 'release')
+const entries = await getCollection('tracking')
 const meta = {
   title: '发布线 · Tracking',
-  description: '精选模型与 Agent 的重要发布、能力与使用变化；深入解读见热点。'
+  description: '发布要点收在热点稿的「发布速览」，每项最多三句话；此处直达各期板块。'
 }
 ---
 
@@ -20,11 +20,11 @@ const meta = {
     <div id='content-header' class='animate'>
       <h1 class='mb-2 mt-6 text-3xl font-medium sm:mt-10'>发布线</h1>
       <p class='text-sm text-muted-foreground sm:text-base'>
-        精选模型与 Agent 的重要发布、能力与使用变化；深入解读见热点。
+        发布要点收在热点稿的「发布速览」，每项最多三句话；此处直达各期板块。
       </p>
     </div>
     <div id='content' class='animate mt-10'>
-      <MonthList entries={releases} emptyMessage='暂无发布记录。' unit='期' />
+      <MonthList entries={entries} releaseView emptyMessage='暂无发布记录。' unit='期' />
     </div>
   </main>
 </PageLayout>
