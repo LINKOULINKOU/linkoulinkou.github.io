@@ -24,7 +24,7 @@ const { Content, headings } = await render(entry)
 const { title, kind } = entry.data
 const dateStr = entry.id.slice(0, 10)
 const kindLabel = { hotnews: '热点追踪', topic: '专题调研', release: '发布线' }[kind]
-const back = kind === 'release' ? '/tracking/releases' : '/tracking'
+const back = '/tracking'
 
 const meta = {
   title,

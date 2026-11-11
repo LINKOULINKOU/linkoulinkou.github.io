@@ -13,7 +13,7 @@ const topics = entries.filter((entry) => entry.data.kind === 'topic')
 
 const meta = {
   title: 'Tracking',
-  description: '模型与 Agent 发布线、工程热点追踪与专题调研归档'
+  description: '工程热点追踪与专题调研归档'
 }
 ---
 
@@ -23,7 +23,7 @@ const meta = {
     <div id='content-header' class='animate'>
       <h1 class='mb-2 mt-6 text-3xl font-medium sm:mt-10'>Tracking</h1>
       <p class='text-sm text-muted-foreground sm:text-base'>
-        热点稿包含简明解读与发布速览；发布线直达各期发布要点，专题深入调研。
+        热点稿包含简明解读与发布速览；专题深入调研。
       </p>
     </div>
 
@@ -31,16 +31,6 @@ const meta = {
       <section aria-labelledby='hotnews-title'>
         <h2 id='hotnews-title' class='text-xl font-medium'>热点</h2>
         <MonthList entries={hotnews} emptyMessage='暂无热点记录。' unit='期' />
-      </section>
-
-      <section aria-labelledby='releases-title'>
-        <div class='flex flex-wrap items-center justify-between gap-3'>
-          <h2 id='releases-title' class='text-xl font-medium'>发布线</h2>
-          <a class='text-sm text-muted-foreground hover:text-primary' href='/tracking/releases'>
-            查看全部发布记录 →
-          </a>
-        </div>
-        <MonthList entries={entries} releaseView emptyMessage='暂无发布记录。' unit='期' />
       </section>
 
       <section aria-labelledby='topics-title'>
