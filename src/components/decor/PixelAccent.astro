@@ -1,34 +1,19 @@
 ---
-import birdSheet from '@/assets/decor/bird-small.png'
-import mapleSheet from '@/assets/decor/maple-small.png'
-import swallowSheet from '@/assets/decor/swallow-small.png'
+import relicSheet from '@/assets/decor/relic-small.png'
 
 /**
- * 三件像素点缀：黄鸟、眼睛枫叶、蓝燕子。衍生重绘自 Sparklehorse 专辑封面。
+ * 统一像素点缀「玫瑰徽章」：椭圆木框 + 手中花束，重绘自 Sparklehorse 封面。
  *
- * 图集由 script/bake-decor.py 按显示尺寸烘焙。
+ * 图集由 script/make-relic.py 生成：1x 像素画按块内主色烘焙成实拍尺寸。
  * 动画与尺寸样式由 decor-frames.ts 生成、DecorStyles.astro 在 <head> 注入一次；
- * 组件负责标记与静态规则。
+ * 组件只负责标记与静态规则。
  *
- * 动效：常驻逐帧循环、末帧无缝回首帧、三件负延迟错相位；
+ * 动效：10 帧常驻循环、末帧无缝回首帧；高光巡游外框、花心逐朵点亮、细屑上升。
  * 离屏与转后台暂停，reduced-motion 完全不注册。
  */
-type Kind = 'bird' | 'maple' | 'swallow'
-
-interface Props {
-  kind: Kind
-}
-
-const { kind } = Astro.props
-const sheets = { bird: birdSheet, maple: mapleSheet, swallow: swallowSheet }
 ---
 
-<span
-  class={`ln-accent ln-accent--${kind}`}
-  data-pixel={kind}
-  aria-hidden='true'
-  style={`--sheet: url(${sheets[kind].src})`}
-></span>
+<span class='ln-accent ln-accent--relic' data-pixel='relic' aria-hidden='true' style={`--sheet: url(${relicSheet.src})`}></span>
 
 <style>
   .ln-accent {

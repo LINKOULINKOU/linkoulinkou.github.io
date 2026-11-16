@@ -5,9 +5,8 @@ interface Props {
   title: string
   description?: string
   hasAside?: boolean
-  accent?: 'bird' | 'maple' | 'swallow'
 }
-const { title, description, hasAside = Astro.slots.has('default'), accent } = Astro.props
+const { title, description, hasAside = Astro.slots.has('default') } = Astro.props
 const section = Astro.url.pathname.split('/').filter(Boolean)[0] ?? ''
 const labels: Record<string, [string, string]> = {
   tracking: ['01', 'FIELD NOTES'], blog: ['02', 'WRITING'], projects: ['03', 'WORK & EXPERIMENTS'],
@@ -15,14 +14,12 @@ const labels: Record<string, [string, string]> = {
   links: ['07', 'ELSEWHERE'], search: ['08', 'SEARCH THE LOGBOOK'], terms: ['09', 'COLOPHON']
 }
 const [number, label] = labels[section] ?? ['00', 'LINKOU LOGBOOK']
-const mascots: Record<string, 'bird' | 'maple' | 'swallow'> = { tracking: 'bird', blog: 'swallow', projects: 'swallow', about: 'maple', links: 'bird', archives: 'maple', tags: 'maple', search: 'bird' }
-const mascot = accent ?? mascots[section]
 ---
 
 <header class='ln-page-head'>
   <div class='ln-page-head__intro'>
     <p class='ln-page-head__eyebrow'><span>{number}</span> / {label}</p>
-    <h1><span>{title}</span>{mascot && <PixelAccent kind={mascot} />}</h1>
+    <h1><span>{title}</span><PixelAccent /></h1>
     {description && <p class='ln-page-head__description'>{description}</p>}
   </div>
   {hasAside && <div class='ln-page-head__aside'><slot /></div>}

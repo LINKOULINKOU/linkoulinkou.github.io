@@ -8,16 +8,15 @@ interface Props {
   meta: SiteMeta
   title: string
   description?: string
-  accent?: 'bird' | 'maple' | 'swallow'
 }
-const { meta, title, description, accent } = Astro.props
+const { meta, title, description } = Astro.props
 const hasTools = Astro.slots.has('tools')
 const hasFilters = Astro.slots.has('filters')
 ---
 
 <BaseLayout {meta}>
   <div class='ln-page'>
-    <PageHead {title} {description} {accent} hasAside={hasTools || hasFilters}>
+    <PageHead {title} {description} hasAside={hasTools || hasFilters}>
       {hasTools && <div class='ln-page-head__tools'><slot name='tools' /></div>}
       <slot name='filters' />
     </PageHead>

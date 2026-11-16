@@ -4,7 +4,7 @@ interface Props {
   title: string
   href: string
   label?: string
-  accent?: 'bird' | 'maple' | 'swallow'
+  accent?: boolean
   index?: string
   english?: string
 }
@@ -14,7 +14,7 @@ const { title, href, label, accent, index = '01', english = 'LATEST NOTES' } = A
 <header class='ln-section-head'>
   <div class='ln-section-head__heading'>
     <span class='ln-section-head__eyebrow'><span>{index}</span> / {english}</span>
-    <h2><span>{title}</span>{accent && <PixelAccent kind={accent} />}</h2>
+    <h2><span>{title}</span>{accent && <PixelAccent />}</h2>
   </div>
   <a class='ln-section-head__enter' {href} aria-label={label ?? title}>
     <span>{label ?? '查看全部'}</span><span aria-hidden='true'>↗</span>
