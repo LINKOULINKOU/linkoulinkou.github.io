@@ -19,7 +19,7 @@ const [number, label] = labels[section] ?? ['00', 'LINKOU LOGBOOK']
 <header class='ln-page-head'>
   <div class='ln-page-head__intro'>
     <p class='ln-page-head__eyebrow'><span>{number}</span> / {label}</p>
-    <h1><span>{title}</span><PixelAccent /></h1>
+    <h1><span>{title}</span><PixelAccent kind="fish" /></h1>
     {description && <p class='ln-page-head__description'>{description}</p>}
   </div>
   {hasAside && <div class='ln-page-head__aside'><slot /></div>}
@@ -43,3 +43,4 @@ const [number, label] = labels[section] ?? ['00', 'LINKOU LOGBOOK']
   .ln-page-head__aside { display: flex; flex: 0 1 auto; flex-wrap: wrap; align-items: center; gap: var(--ln-space-2) var(--ln-space-6); padding-bottom: var(--ln-space-1); }
   .ln-page-head :global(.ln-page-head__tools) { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ln-space-2) var(--ln-space-4); color: hsl(var(--ln-color-muted)); font-size: var(--ln-text-meta); }
 </style>
+

@@ -28,7 +28,7 @@ const kindLabel = { hotnews: '热点', topic: '专题', release: '发布线' } a
   <h1 class='sr-only'>LINKOULINKOU</h1>
   <div class='ln-home'>
     <section aria-label='最近更新'>
-      <SectionHead title='最近更新' href='/tracking' label='全部追踪' accent />
+      <SectionHead title='最近更新' href='/tracking' label='全部追踪' accent='bird' />
       {updates[0] && <div class='ln-home__lead ln-pixel-frame ln-pixel-frame--accent'>
         <span class='ln-home__motif ln-pixel-motif' aria-hidden='true'></span>
         <EntryLink
@@ -59,7 +59,7 @@ const kindLabel = { hotnews: '热点', topic: '专题', release: '发布线' } a
     </section>
     <aside class='ln-home__side' aria-label='专题与随笔'>
       <section class='ln-home__topics ln-pixel-frame'>
-        <SectionHead title='专题精选' href='/tracking#topics' label='全部专题' index='02' english='IN FOCUS' accent />
+        <SectionHead title='专题精选' href='/tracking#topics' label='全部专题' index='02' english='IN FOCUS' accent='maple' />
         <ul class='ln-home__list'>
           {
             topics.map((entry, i) => (
@@ -78,7 +78,7 @@ const kindLabel = { hotnews: '热点', topic: '专题', release: '发布线' } a
         {topics.length === 0 && <p class='ln-home__empty'>暂无专题。</p>}
       </section>
       <section>
-        <SectionHead title='随笔' href='/blog' label='全部文章' index='03' english='PERSONAL WRITING' accent />
+        <SectionHead title='随笔' href='/blog' label='全部文章' index='03' english='PERSONAL WRITING' accent='swallow' />
         <ul class='ln-home__list'>
           {
             notes.map((post) => (

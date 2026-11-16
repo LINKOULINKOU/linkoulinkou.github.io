@@ -107,7 +107,10 @@
   --ln-wordmark-row: 18px;
   --ln-wordmark-gap: 7px;
   --ln-wordmark-softness: 0.28px;
-  --ln-motion-frame-relic: 220ms;
+  --ln-motion-frame-bird: 170ms;
+  --ln-motion-frame-maple: 300ms;
+  --ln-motion-frame-swallow: 230ms;
+  --ln-motion-frame-fish: 220ms;
 }
 @media (min-width: 40em) {
   :root { --ln-page-inset: 32px; }
