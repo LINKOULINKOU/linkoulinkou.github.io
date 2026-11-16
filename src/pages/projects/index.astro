@@ -1,8 +1,62 @@
 ---
-import PageLayout from '@/layouts/CommonPage.astro'
+import PageLayout from '@/layouts/PageLayout.astro'
 import GitHubActivities from '@/components/projects/GitHubActivities.astro'
+import JumpLink from '@/components/navigation/JumpLink.astro'
+
+const meta = { title: '项目', description: 'GitHub 上的项目与提交记录。' }
 ---
 
-<PageLayout title='Projects' view>
-  <GitHubActivities />
+<PageLayout {meta} title='项目' description={meta.description}>
+  <JumpLink slot='tools' href='https://github.com/LINKOULINKOU?tab=repositories' label='浏览代码仓库' direction='external' external />
+  <div class='ln-projects'>
+    <div class='ln-projects__activity ln-pixel-frame'><GitHubActivities /></div>
+    <div class='ln-projects__source'>
+      <span>LINKOULINKOU / GitHub</span>
+      <JumpLink href='https://github.com/LINKOULINKOU' label='个人主页' direction='external' external />
+    </div>
+  </div>
 </PageLayout>
+
+<style>
+  .ln-projects {
+    min-width: 0;
+  }
+  .ln-projects__activity {
+    padding-block: var(--ln-space-10) var(--ln-space-12);
+  }
+  .ln-projects__activity :global(.gh) {
+    gap: var(--ln-space-6) var(--ln-space-8);
+    min-width: 0;
+  }
+  .ln-projects__activity :global(.gh__note) {
+    max-width: var(--ln-measure);
+    line-height: var(--ln-leading-reading);
+  }
+  .ln-projects__activity :global(.gh__wrap) {
+    padding-block: var(--ln-space-4);
+  }
+  .ln-projects__source {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: var(--ln-space-3) var(--ln-space-6);
+    padding-block: var(--ln-space-4);
+    color: hsl(var(--ln-color-muted));
+    font-family: var(--ln-font-mono);
+    font-size: var(--ln-text-micro);
+    line-height: var(--ln-leading-meta);
+  }
+  .ln-projects__source :global(.ln-jump) {
+    font-size: inherit;
+  }
+  @media (min-width: 40em) {
+    .ln-projects__activity {
+      padding: var(--ln-space-8);
+    }
+    .ln-projects__source {
+      padding-inline: var(--ln-space-8);
+      padding-top: var(--ln-space-6);
+    }
+  }
+</style>

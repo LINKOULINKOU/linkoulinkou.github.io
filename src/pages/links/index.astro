@@ -1,65 +1,143 @@
 ---
 import links from '@/public/links.json'
 
-import { Collapse, Timeline } from 'astro-pure/user'
-import PageLayout from '@/layouts/CommonPage.astro'
+import PageLayout from '@/layouts/PageLayout.astro'
 import FriendList from '@/components/links/FriendList.astro'
+import JumpLink from '@/components/navigation/JumpLink.astro'
 import config from 'virtual:config'
-
-const headings = [
-  { depth: 2, slug: 'common-links', text: 'Common Links' },
-  { depth: 2, slug: 'special-links', text: 'Special Links' },
-  { depth: 2, slug: 'apply-links', text: 'Apply Links' }
-]
 
 const { friends } = links
 const linksConf = config.integ.links
-const linkEditPage = 'https://github.com/LINKOULINKOU/linkoulinkou.github.io/blob/main/public/links.json'
+const applyItems = linksConf.applyTip ?? []
+const editUrl = 'https://github.com/LINKOULINKOU/linkoulinkou.github.io/blob/main/public/links.json'
+const meta = { title: '友链', description: '友链与申请说明' }
+const groups = friends.filter((group) => group.link_list.length > 0)
+const groupTitles: Record<string, string> = {
+  'cf-links': '友链',
+  'inactive-links': '非活跃链接',
+  'special-links': '其他链接'
+}
 ---
 
-<PageLayout title='Links' {headings} comment>
-  <p>They're sorted randomly.</p>
-  <h2 id='common-links'>Common Links</h2>
-  <FriendList list={friends[0]} />
-  <Collapse title='Links with Bad Status'>
-    <FriendList list={friends[1]} />
-  </Collapse>
-  <Collapse title='Link History Book'>
-    <Timeline events={linksConf.logbook} />
-  </Collapse>
-  <h2 id='special-links'>Special Links</h2>
-  <FriendList list={friends[2]} />
+<PageLayout {meta} title='友链'>
+  <JumpLink slot='tools' href={editUrl} label='提交 PR' direction='external' external />
 
-  <h2 id='apply-links'>Apply Links</h2>
-  <p>本站信息（点击复制）The site information (click to copy)：</p>
-  <blockquote class='not-prose grid grid-cols-[auto_1fr] gap-x-2 break-words border-s-4 ps-4'>
-    {
-      linksConf.applyTip.map(({ name, val }) => {
-        const script = `navigator.clipboard.writeText('${val}');document.dispatchEvent(new CustomEvent('toast',{detail:{message:'Copied "${val}" to clipboard!'}}))`
-        return (
-          <>
-            <span class='text-end'>{name}:</span>
-            <samp class='cursor-pointer' onclick={script}>
-              {val}
-            </samp>
-          </>
+  <section class='ln-friend-block' aria-labelledby='friend-title'>
+    <h2 id='friend-title'>站点</h2>
+    <div class='ln-friend-block__body'>
+      {
+        groups.length > 0 ? (
+          groups.map((group) => <FriendList list={group} title={groupTitles[group.id_name]} />)
+        ) : (
+          <p class='ln-empty'>暂无友链。</p>
         )
-      })
-    }
-  </blockquote>
+      }
+    </div>
+  </section>
 
-  <p>
-    可通过下方留言或 <a href={linkEditPage} target='_blank'>提交 PR</a> 申请友链。申请说明：<br />
-    Apply your link by leaving comment or <a href={linkEditPage} target='_blank'>Submitting a PR</a
-    >. Additional info:
-  </p>
-  <ul>
-    <li>推荐了本站 You've recommended our link on your website</li>
-    <li>站点活着且有正式域名 Make sure your site is alive with a formal domain</li>
-    <li>
-      至少五篇原创文章且最近一年更新过 At least 5 original articles and exists articles released in
-      recent year
-    </li>
-    <li>内容不违反国家法律 Content does not violate laws</li>
-  </ul>
+  <section class='ln-friend-block' aria-labelledby='apply-title'>
+    <h2 id='apply-title'>申请友链</h2>
+    <div class='ln-friend-block__body ln-friend-block__application ln-pixel-frame'>
+      <p class='ln-friend-note'>申请前请先在您的站点添加本站链接，然后提交 PR。</p>
+      <dl class='ln-friend-apply'>
+        {
+          applyItems.map(({ name, val }) => (
+            <div><dt>{name}</dt><dd>{val}</dd></div>
+          ))
+        }
+      </dl>
+      <ul class='ln-friend-rules'>
+        <li>站点可正常访问，且有正式域名</li>
+        <li>至少 5 篇原创文章，最近一年有更新</li>
+        <li>内容不违反法律法规</li>
+      </ul>
+      <div class='ln-friend-action'>
+        <JumpLink href={editUrl} label='提交友链信息' direction='external' external />
+      </div>
+    </div>
+  </section>
 </PageLayout>
+
+<style>
+  .ln-friend-block {
+    display: grid;
+    gap: var(--ln-space-6);
+    padding-block: var(--ln-space-8);
+  }
+  .ln-friend-block h2 {
+    margin: 0;
+    font-size: var(--ln-text-sm);
+    font-weight: var(--ln-weight-medium);
+    line-height: var(--ln-leading-ui);
+  }
+  .ln-friend-block__body {
+    min-width: 0;
+  }
+  .ln-friend-note,
+  .ln-empty {
+    margin: 0;
+    color: hsl(var(--ln-color-body));
+    font-size: var(--ln-text-base);
+    line-height: var(--ln-leading-reading);
+  }
+  .ln-empty {
+    padding-block: var(--ln-space-4) var(--ln-space-8);
+    color: hsl(var(--ln-color-muted));
+  }
+  .ln-friend-apply {
+    margin: var(--ln-space-6) 0 0;
+  }
+  .ln-friend-apply div {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
+    gap: var(--ln-space-4);
+    padding-block: var(--ln-space-4);
+    font-size: var(--ln-text-sm);
+    line-height: var(--ln-leading-reading);
+  }
+  .ln-friend-apply dt {
+    color: hsl(var(--ln-color-muted));
+  }
+  .ln-friend-apply dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+  .ln-friend-rules {
+    display: grid;
+    gap: var(--ln-space-2);
+    margin: var(--ln-space-6) 0 0;
+    padding-left: var(--ln-space-4);
+    color: hsl(var(--ln-color-muted));
+    font-size: var(--ln-text-sm);
+    line-height: var(--ln-leading-reading);
+    list-style-type: square;
+  }
+  .ln-friend-rules li::marker {
+    color: hsl(var(--ln-color-accent));
+  }
+  .ln-friend-action {
+    margin-top: var(--ln-space-6);
+  }
+  @media (min-width: 40em) {
+    .ln-friend-block {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
+      gap: var(--ln-space-8);
+      padding-block: var(--ln-space-10);
+    }
+    .ln-friend-block:has(.ln-friend-block__application) > h2 {
+      padding-top: var(--ln-space-8);
+    }
+    .ln-friend-block__application {
+      padding: var(--ln-space-8);
+      margin-inline-start: calc(-1 * var(--ln-space-8));
+    }
+    .ln-friend-apply {
+      display: grid;
+      gap: var(--ln-space-3);
+    }
+    .ln-friend-apply div {
+      grid-template-columns: 80px minmax(0, 1fr);
+      padding-block: 0;
+    }
+  }
+</style>

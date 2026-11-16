@@ -1,0 +1,32 @@
+---
+/**
+ * 页内跳转箭头：16×16 画布、1px 像素模块、方端 45° 阶梯斜边。
+ * 三种方向共用同一套构造：2px 杆 + 2px 定宽阶梯 + 1px 缺口式尖锋；外链是同一语言转过 45°。
+ * 全部形状落在整数像素上，shape-rendering: crispEdges 关掉抗锯齿，DPR1/2 都不产生灰边。
+ * 颜色只取 currentColor（父级 muted → hover 钴蓝），组件本身不写颜色。
+ */
+interface Props {
+  direction?: 'back' | 'forward' | 'external'
+  class?: string
+}
+const { direction = 'forward', class: className } = Astro.props
+
+/** 墨迹整体比画布中心高 1px，对齐 13px 中文的视觉中心（行盒中心偏高约 0.75px）。 */
+const PATHS = {
+  back: 'M4 3h2v1h-2zM3 4h2v1h-2zM2 5h2v1h-2zM2 6h13v2h-13zM2 8h2v1h-2zM3 9h2v1h-2zM4 10h2v1h-2z',
+  forward:
+    'M10 3h2v1h-2zM11 4h2v1h-2zM12 5h2v1h-2zM1 6h13v2h-13zM12 8h2v1h-2zM11 9h2v1h-2zM10 10h2v1h-2z',
+  external:
+    'M9 2h5v2h-5zM11 4h3v1h-3zM10 5h2v1h-2zM9 6h2v1h-2zM8 7h2v1h-2zM7 8h2v1h-2zM6 9h2v1h-2zM5 10h2v1h-2zM4 11h2v1h-2z',
+} as const
+---
+
+<svg
+  class:list={['ln-jump__mark', className]}
+  viewBox='0 0 16 16'
+  width='16'
+  height='16'
+  aria-hidden='true'
+  focusable='false'
+  shape-rendering='crispEdges'
+><path d={PATHS[direction]} fill='currentColor'></path></svg>

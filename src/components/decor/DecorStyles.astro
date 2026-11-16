@@ -1,0 +1,9 @@
+---
+/**
+ * 像素点缀的动画与尺寸样式：全站只注入一次（放在 <head>）。
+ * 之前每个 PixelAccent 实例各带一份 <style>，被放进标题里时会往 h2 内塞 CSS。
+ */
+import { DECOR_CSS } from '@/components/decor/decor-frames'
+---
+
+<style is:inline set:html={DECOR_CSS}></style>

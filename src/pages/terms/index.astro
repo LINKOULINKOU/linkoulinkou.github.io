@@ -1,25 +1,58 @@
 ---
-import { Button, CardList } from 'astro-pure/user'
-import { cn } from 'astro-pure/utils'
-import PageLayout from '@/layouts/BaseLayout.astro'
-import { integ, terms } from '@/site-config'
+import PageLayout from '@/layouts/PageLayout.astro'
+import { terms } from '@/site-config'
 
 const meta = {
-  title: 'Site policy',
-  description: 'Site policy documentation'
+  title: '站点说明',
+  description: '站点说明与条款入口'
 }
 ---
 
-<PageLayout {meta}>
-  <Button title='Back' href='/' variant='back' />
-  <main class='mt-6 lg:mt-10'>
-    <div id='content-header' class='animate'>
-      <h1 class='mb-6 text-3xl font-medium'>Site Policy</h1>
-    </div>
-
-    <div id='content' class={cn('animate mt-8 max-w-none md:min-w-[45ch]', integ.typography.class)}>
-      <h2 class='text-xl font-medium'>Site policy documentation</h2>
-      <CardList {...terms} />
-    </div>
-  </main>
+<PageLayout {meta} title='站点说明'>
+  <ul class='ln-terms'>
+    {
+      terms.list.map((item) => (
+        <li>
+          <a href={item.link}>{item.title}</a>
+        </li>
+      ))
+    }
+  </ul>
 </PageLayout>
+
+<style>
+  .ln-terms {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ln-space-2) var(--ln-space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--ln-text-sm);
+  }
+
+  .ln-terms a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--ln-hit-min);
+    padding: var(--ln-space-2) var(--ln-space-3);
+    border: var(--ln-border-width) solid hsl(var(--ln-color-line));
+    color: hsl(var(--ln-color-muted));
+    text-decoration: none;
+    transition:
+      color var(--ln-motion-fast) var(--ln-ease-standard),
+      border-color var(--ln-motion-fast) var(--ln-ease-standard),
+      background-color var(--ln-motion-fast) var(--ln-ease-standard);
+  }
+
+  .ln-terms a:hover {
+    border-color: hsl(var(--ln-color-accent));
+    background-color: hsl(var(--ln-color-hover));
+  }
+
+  .ln-terms a:active {
+    background-color: hsl(var(--ln-color-press));
+    box-shadow: inset 0 0 0 var(--ln-inset-ring) hsl(var(--ln-color-accent));
+  }
+</style>
+

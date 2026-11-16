@@ -1,0 +1,24 @@
+---
+/** 页内跳转链接。 */
+import PixelArrow from '@/components/navigation/PixelArrow.astro'
+
+interface Props {
+  href: string
+  label: string
+  direction?: 'back' | 'forward' | 'external'
+  external?: boolean
+  rel?: string
+  class?: string
+}
+const { href, label, direction = 'forward', external = false, rel, class: className } = Astro.props
+---
+
+<a
+  class:list={['ln-jump', `ln-jump--${direction}`, className]}
+  {href}
+  target={external ? '_blank' : undefined}
+  rel={external ? 'noopener noreferrer' : rel}
+>
+  <PixelArrow direction={direction} />
+  <span class='ln-jump__label'>{label}</span>
+</a>

@@ -1,33 +1,60 @@
 ---
-import { PFSearch } from 'astro-pure/components/pages'
-import { Button } from 'astro-pure/user'
-import PageLayout from '@/layouts/BaseLayout.astro'
+import PageLayout from '@/layouts/PageLayout.astro'
+import SearchPanel from '@/components/search/SearchPanel.astro'
 import { integ } from '@/site-config'
 
 const meta = {
-  description: 'Search relative posts of the whole blog',
-  title: 'Search'
+  description: '搜索站内文章与前沿追踪',
+  title: '站内搜索'
 }
 ---
 
-<PageLayout {meta}>
-  <Button title='Back' href='/blog' variant='back' />
-  <main class='mt-6 lg:mt-10'>
-    <div id='content-header' class='animate'>
-      <h1 class='mb-6 text-3xl font-medium'>Search</h1>
-    </div>
-
-    <div id='content' class='animate'>
-      {
-        integ.pagefind ? (
-          <>
-            <p>Enter a search term or phrase to search the blog.</p>
-            <PFSearch />
-          </>
-        ) : (
-          <p>Pagefind is disabled.</p>
-        )
-      }
-    </div>
-  </main>
+<PageLayout {meta} title='站内搜索'>
+  <div class='ln-search'>
+    {
+      integ.pagefind ? (
+        <SearchPanel focusOnTrigger />
+      ) : (
+        <p class='ln-empty'>搜索暂不可用，可浏览文章或追踪。</p>
+      )
+    }
+    <p class='ln-search__hint'>
+      索引在构建时生成，不包含草稿。也可以直接浏览<a href='/blog'>文章</a>或<a href='/tracking'>前沿追踪</a>。
+    </p>
+  </div>
 </PageLayout>
+
+<style>
+  .ln-search {
+    max-width: var(--ln-width-search);
+  }
+
+  .ln-search__hint {
+    margin: var(--ln-space-8) 0 0;
+    padding-top: var(--ln-space-4);
+    border-top: var(--ln-border-width) solid hsl(var(--ln-color-line));
+    color: hsl(var(--ln-color-muted));
+    font-size: var(--ln-text-sm);
+    line-height: var(--ln-leading-ui);
+  }
+
+  .ln-search__hint a {
+    color: hsl(var(--ln-color-accent));
+    font-weight: var(--ln-weight-medium);
+    text-decoration: none;
+    transition: background-color var(--ln-motion-hover) var(--ln-ease-standard);
+  }
+
+  .ln-search__hint a:hover {
+    background-color: hsl(var(--ln-color-hover));
+  }
+
+  .ln-empty {
+    color: hsl(var(--ln-color-muted));
+    font-size: var(--ln-text-sm);
+  }
+</style>
+
+
+
+

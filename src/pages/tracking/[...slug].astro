@@ -2,8 +2,9 @@
 import type { GetStaticPaths } from 'astro'
 import { getCollection, render, type CollectionEntry } from 'astro:content'
 
-import { TOC } from 'astro-pure/components/pages'
 import PageLayout from '@/layouts/ContentLayout.astro'
+import JumpLink from '@/components/navigation/JumpLink.astro'
+import { formatDate } from '@/lib/format-date'
 
 interface Props {
   entry: CollectionEntry<'tracking'>
@@ -22,7 +23,7 @@ export const getStaticPaths = (async () => {
 const { entry } = Astro.props
 const { Content, headings } = await render(entry)
 const { title, kind } = entry.data
-const dateStr = entry.id.slice(0, 10)
+const dateStr = formatDate(entry.data.date)
 const kindLabel = { hotnews: '热点追踪', topic: '专题调研', release: '发布线' }[kind]
 const back = '/tracking'
 
@@ -32,47 +33,80 @@ const meta = {
 }
 ---
 
-<PageLayout {meta} {back}>
-  {!!headings.length && <TOC {headings} slot='sidebar' />}
-
+<PageLayout {meta} {back} {headings}>
   <Fragment slot='header'>
-    <h1 class='text-2xl font-medium sm:mb-2 sm:text-3xl'>{title}</h1>
-    <div class='mt-4 flex flex-wrap gap-x-4 gap-y-2 text-xs leading-6 text-muted-foreground'>
+    <h1 class='ln-article-title'>{title}</h1>
+    <p class='ln-article-meta'>
       <span>{kindLabel}</span>
-      <span>{dateStr}</span>
-    </div>
+      <time datetime={dateStr}>{dateStr}</time>
+    </p>
   </Fragment>
 
   <Content />
+
+  <Fragment slot='bottom'>
+    <footer class='ln-detail-foot'>
+      <JumpLink href='/tracking' label='返回追踪' direction='back' />
+      <p class='ln-detail-foot__meta'>
+        {kindLabel} · <time datetime={dateStr}>{dateStr}</time> · LINKOULINKOU
+      </p>
+    </footer>
+  </Fragment>
 </PageLayout>
 
 <style is:global>
   /* 「调研说明」折叠框（HTML 由 scripts/sync-tracking.mjs 生成） */
   .tracking-note {
-    margin: 1.5rem 0;
-    padding: 0.6rem 1rem;
-    border: 1px solid hsl(var(--border));
-    border-radius: calc(1.5 * var(--radius));
-    font-size: 0.875rem;
-    line-height: 1.7;
-    color: hsl(var(--muted-foreground));
+    margin: var(--ln-space-6) 0;
+    padding-inline: var(--ln-space-4);
+    border: var(--ln-border-width) solid hsl(var(--ln-color-line));
+    font-size: var(--ln-text-sm);
+    line-height: var(--ln-leading-ui);
+    color: hsl(var(--ln-color-muted));
   }
+
   .tracking-note summary {
+    display: flex;
+    align-items: center;
+    /* 整块 44px 可点：之前只有 20px 的文字行响应 */
+    min-height: var(--ln-hit-min);
     cursor: pointer;
     user-select: none;
-    font-weight: 500;
-    color: hsl(var(--foreground));
+    font-weight: var(--ln-weight-medium);
+    color: hsl(var(--ln-color-ink));
   }
+
   .tracking-note summary:hover {
-    color: hsl(var(--primary));
+    color: hsl(var(--ln-color-accent));
   }
+
   .tracking-note blockquote {
-    margin: 0.75rem 0 0.25rem;
+    margin: var(--ln-space-3) 0 var(--ln-space-1);
     padding: 0;
     border: none;
     box-shadow: none;
   }
+
   .tracking-note blockquote::after {
     content: none;
+  }
+
+  /* 研究与手写文章一样需要收尾：返回入口 + 署名 */
+  .ln-detail-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ln-space-3);
+    margin-top: var(--ln-space-8);
+    padding-top: var(--ln-space-4);
+    border-top: var(--ln-border-width) solid hsl(var(--ln-color-line));
+    font-size: var(--ln-text-meta);
+  }
+
+  .ln-detail-foot__meta {
+    margin: 0;
+    color: hsl(var(--ln-color-muted));
+    font-variant-numeric: tabular-nums;
   }
 </style>

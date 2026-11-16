@@ -1,42 +1,64 @@
 ---
 import { getCollection } from 'astro:content'
 
-import { Button } from 'astro-pure/user'
-import PageLayout from '@/layouts/BaseLayout.astro'
+import PageLayout from '@/layouts/PageLayout.astro'
 import MonthList from '@/components/tracking/MonthList.astro'
+import TrackingTabs from '@/components/tracking/TrackingTabs.astro'
 
 export const prerender = true
-
 const entries = await getCollection('tracking')
-const hotnews = entries.filter((entry) => entry.data.kind === 'hotnews')
-const topics = entries.filter((entry) => entry.data.kind === 'topic')
-
-const meta = {
-  title: 'Tracking',
-  description: '工程热点追踪与专题调研归档'
-}
+const hotnews = entries.filter(({ data }) => data.kind === 'hotnews')
+const topics = entries.filter(({ data }) => data.kind === 'topic')
+const meta = { title: '前沿追踪', description: '工程热点追踪与专题调研归档' }
 ---
 
-<PageLayout {meta}>
-  <Button title='Back' href='/' variant='back' />
-  <main class='mt-6 lg:mt-10'>
-    <div id='content-header' class='animate'>
-      <h1 class='mb-2 mt-6 text-3xl font-medium sm:mt-10'>Tracking</h1>
-      <p class='text-sm text-muted-foreground sm:text-base'>
-        热点稿包含简明解读与发布速览；专题深入调研。
-      </p>
-    </div>
-
-    <div id='content' class='animate mt-10 flex flex-col gap-y-14'>
-      <section aria-labelledby='hotnews-title'>
-        <h2 id='hotnews-title' class='text-xl font-medium'>热点</h2>
-        <MonthList entries={hotnews} emptyMessage='暂无热点记录。' unit='期' />
-      </section>
-
-      <section aria-labelledby='topics-title'>
-        <h2 id='topics-title' class='text-xl font-medium'>专题</h2>
-        <MonthList entries={topics} emptyMessage='暂无专题记录。' />
-      </section>
-    </div>
-  </main>
+<PageLayout {meta} title='前沿追踪' description='按天记录，值得展开的写成专题。'>
+  <TrackingTabs slot='filters' hotnewsCount={hotnews.length} topicsCount={topics.length} />
+  <div class='ln-tracking'>
+    <section id='hotnews' aria-labelledby='hotnews-heading'>
+      <div class='ln-tracking__section-head'>
+        <h2 id='hotnews-heading'>热点记录</h2>
+        <p>按月归档 <span aria-hidden='true'>/</span> {hotnews.length} 期</p>
+      </div>
+      <MonthList entries={hotnews} emptyMessage='暂无热点记录。' unit='期' kind='hotnews' />
+    </section>
+    <section id='topics' aria-labelledby='topics-heading'>
+      <div class='ln-tracking__section-head'>
+        <h2 id='topics-heading'>专题调研</h2>
+        <p>按月归档 <span aria-hidden='true'>/</span> {topics.length} 篇</p>
+      </div>
+      <MonthList entries={topics} emptyMessage='暂无专题记录。' unit='篇' kind='topics' />
+    </section>
+  </div>
 </PageLayout>
+
+<style>
+  .ln-tracking > section {
+    scroll-margin-top: var(--ln-space-8);
+  }
+  .ln-tracking > section:not([hidden]) ~ section:not([hidden]) {
+    margin-top: var(--ln-space-12);
+  }
+  .ln-tracking__section-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--ln-space-3) var(--ln-space-6);
+    padding-block: var(--ln-space-2) var(--ln-space-6);
+  }
+  .ln-tracking__section-head h2 {
+    margin: 0;
+    color: hsl(var(--ln-color-ink));
+    font-size: var(--ln-text-section);
+    font-weight: var(--ln-weight-medium);
+  }
+  .ln-tracking__section-head p {
+    display: flex;
+    gap: var(--ln-space-3);
+    margin: 0;
+    color: hsl(var(--ln-color-muted));
+    font-size: var(--ln-text-meta);
+    font-variant-numeric: tabular-nums;
+  }
+</style>

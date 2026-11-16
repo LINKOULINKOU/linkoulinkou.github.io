@@ -1,0 +1,126 @@
+---
+/** 同色双行字标：微小静态偏差＋持续错相位流散，宏观可读、局部不规则。 */
+const glyphs: Record<string, string[]> = {
+  L: ['10000', '10000', '10000', '10000', '10000', '10000', '11111'],
+  I: ['111', '010', '010', '010', '010', '010', '111'],
+  N: ['10001', '11001', '11001', '10101', '10011', '10011', '10001'],
+  K: ['10001', '10010', '10100', '11000', '10100', '10010', '10001'],
+  O: ['01110', '10001', '10001', '10001', '10001', '10001', '01110'],
+  U: ['10001', '10001', '10001', '10001', '10001', '10001', '01110']
+}
+let cursor = 0
+const pixels: { x: number; y: number }[] = []
+for (const letter of 'LINKOU') {
+  glyphs[letter].forEach((row, y) => [...row].forEach((cell, x) => {
+    if (cell === '1') pixels.push({ x: cursor + x, y })
+  }))
+  cursor += glyphs[letter][0].length + 3
+}
+const width = cursor - 3
+const rows = [0, 1].map((row) => pixels.map((pixel, index) => {
+  const seed = index + row * 113
+  const size = 0.76 + ((seed * 7) % 5) * 0.04
+  return {
+    x: pixel.x + (1 - size) / 2 + (((seed * 17) % 9) - 4) * 0.035,
+    y: pixel.y + (1 - size) / 2 + (((seed * 11) % 7) - 3) * 0.04,
+    size,
+    opacity: 0.74 + ((seed * 3) % 5) * 0.05,
+    dx: (((seed * 13) % 17) - 8) * 0.42,
+    dy: (((seed * 7) % 13) - 6) * 0.36,
+    seed
+  }
+}))
+---
+
+<a class='ln-wordmark' href='/' aria-label='LINKOULINKOU 首页' data-wordmark>
+  <span class='ln-wordmark__rows' aria-hidden='true'>
+    {rows.map((pixels, row) => (
+      <svg class='ln-wordmark__row' viewBox={`0 0 ${width} 7`} preserveAspectRatio='none' fill='currentColor' shape-rendering='crispEdges' focusable='false'>
+        {pixels.map((p, index) => (
+          <rect x={p.x} y={p.y} width={p.size} height={p.size} opacity={p.opacity}
+            data-wm-pixel={index} data-wm-row={row} data-seed={p.seed}
+            data-dx={p.dx} data-dy={p.dy} data-opacity={p.opacity} />
+        ))}
+      </svg>
+    ))}
+  </span>
+</a>
+
+<script>
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
+  document.querySelectorAll<HTMLElement>('[data-wordmark]').forEach((mark) => {
+    const pixels = [...mark.querySelectorAll<SVGRectElement>('[data-wm-pixel]')]
+    let animations: Animation[] = []
+    let visible = true
+    const build = () => {
+      const raw = getComputedStyle(mark).getPropertyValue('--ln-motion-wordmark').trim()
+      const cycle = parseFloat(raw) * (raw.endsWith('ms') ? 1 : 1000)
+      animations = pixels.map((pixel) => {
+        const seed = Number(pixel.dataset.seed)
+        const dx = Number(pixel.dataset.dx)
+        const dy = Number(pixel.dataset.dy)
+        const opacity = Number(pixel.dataset.opacity)
+        const duration = cycle * (0.8 + ((seed * 19) % 41) / 100)
+        const move = (x: number, y: number) => `translate(${x}px, ${y}px)`
+        return pixel.animate([
+          { transform: move(0, 0), opacity, offset: 0 },
+          { transform: move(-dx * 0.08, dy * 0.08), opacity: opacity * 0.95, offset: 0.22 },
+          { transform: move(dx * 0.13, dy * 0.13), opacity: opacity * 0.85, offset: 0.43 },
+          { transform: move(dx, dy), opacity: 0.14, offset: 0.6 },
+          { transform: move(dx * 0.72, dy * 0.72), opacity: opacity * 0.36, offset: 0.7 },
+          { transform: move(-dx * 0.1, -dy * 0.1), opacity: opacity * 0.95, offset: 0.88 },
+          { transform: move(0, 0), opacity, offset: 1 }
+        ], {
+          duration,
+          delay: -duration * (((seed * 37) % 101) / 101),
+          iterations: Infinity,
+          easing: 'cubic-bezier(.37,0,.2,1)'
+        })
+      })
+    }
+    const tune = () => {
+      const rate = mark.matches(':hover, :focus-within') ? 0.65 : 1
+      animations.forEach((animation) => animation.updatePlaybackRate(rate))
+    }
+    const sync = () => {
+      if (reducedMotion.matches) {
+        animations.forEach((animation) => animation.cancel())
+        animations = []
+        mark.dataset.motion = 'static'
+        return
+      }
+      if (!animations.length) build()
+      const paused = document.hidden || !visible
+      animations.forEach((animation) => paused ? animation.pause() : animation.play())
+      mark.dataset.motion = paused ? 'paused' : 'running'
+      tune()
+    }
+    ;['pointerenter', 'pointerleave', 'focusin', 'focusout'].forEach((event) => mark.addEventListener(event, tune))
+    document.addEventListener('visibilitychange', sync)
+    reducedMotion.addEventListener('change', sync)
+    const observer = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; sync() })
+    observer.observe(mark)
+    sync()
+  })
+</script>
+
+<style>
+  .ln-wordmark {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    min-height: var(--ln-hit-min);
+    width: var(--ln-wordmark-width);
+    color: hsl(var(--ln-color-ink));
+    text-decoration: none;
+    line-height: 0;
+  }
+  .ln-wordmark__rows { display: grid; gap: var(--ln-wordmark-gap); width: 100%; }
+  .ln-wordmark__row {
+    display: block;
+    width: 100%;
+    height: var(--ln-wordmark-row);
+    overflow: visible;
+    filter: blur(var(--ln-wordmark-softness));
+  }
+</style>

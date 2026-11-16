@@ -1,0 +1,92 @@
+---
+import birdSheet from '@/assets/decor/bird-small.png'
+import mapleSheet from '@/assets/decor/maple-small.png'
+import swallowSheet from '@/assets/decor/swallow-small.png'
+
+/**
+ * 三件像素点缀：黄鸟、眼睛枫叶、蓝燕子。衍生重绘自 Sparklehorse 专辑封面。
+ *
+ * 图集由 script/bake-decor.py 按显示尺寸烘焙。
+ * 动画与尺寸样式由 decor-frames.ts 生成、DecorStyles.astro 在 <head> 注入一次；
+ * 组件负责标记与静态规则。
+ *
+ * 动效：常驻逐帧循环、末帧无缝回首帧、三件负延迟错相位；
+ * 离屏与转后台暂停，reduced-motion 完全不注册。
+ */
+type Kind = 'bird' | 'maple' | 'swallow'
+
+interface Props {
+  kind: Kind
+}
+
+const { kind } = Astro.props
+const sheets = { bird: birdSheet, maple: mapleSheet, swallow: swallowSheet }
+---
+
+<span
+  class={`ln-accent ln-accent--${kind}`}
+  data-pixel={kind}
+  aria-hidden='true'
+  style={`--sheet: url(${sheets[kind].src})`}
+></span>
+
+<style>
+  .ln-accent {
+    display: inline-block;
+    box-sizing: content-box;
+    flex: none;
+    background-image: var(--sheet);
+    background-repeat: no-repeat;
+    background-position: 0 0;
+    image-rendering: pixelated;
+    vertical-align: middle;
+    pointer-events: none;
+  }
+
+  /* 首次进视口后注册动画（is-seen 一次性），之后靠 is-visible 控制播放/暂停 */
+  .ln-accent.is-seen {
+    animation-name: var(--ln-anim);
+    animation-duration: var(--ln-cycle);
+    animation-timing-function: steps(1, end);
+    animation-iteration-count: infinite;
+    animation-delay: var(--ln-delay);
+    animation-play-state: var(--ln-accent-play, running);
+  }
+
+  .ln-accent.is-seen:not(.is-visible),
+  :global(html.is-background) .ln-accent {
+    --ln-accent-play: paused;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ln-accent,
+    .ln-accent.is-seen {
+      animation: none !important;
+      background-position: 0 0;
+    }
+  }
+</style>
+
+<script>
+  const accents = Array.from(document.querySelectorAll<HTMLElement>('[data-pixel]'))
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+  if (accents.length && !reduceMotion && 'IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) entry.target.classList.add('is-seen')
+          entry.target.classList.toggle('is-visible', entry.isIntersecting)
+        }
+      },
+      { threshold: 0.25 }
+    )
+    for (const accent of accents) observer.observe(accent)
+
+    const syncBackground = () => {
+      document.documentElement.classList.toggle('is-background', document.hidden)
+    }
+    document.addEventListener('visibilitychange', syncBackground)
+    syncBackground()
+  }
+</script>

@@ -1,0 +1,53 @@
+/* 开放式像素展签：有辨识度的离散角点，不画连续边线，不填大色面。 */
+.ln-pixel-frame {
+  --ln-frame-color: var(--ln-color-frame);
+  position: relative;
+}
+.ln-pixel-frame--accent { --ln-frame-color: var(--ln-color-accent); }
+.ln-pixel-frame::before,
+.ln-pixel-frame::after {
+  content: '';
+  position: absolute;
+  width: var(--ln-frame-dot);
+  height: var(--ln-frame-dot);
+  background: hsl(var(--ln-frame-color) / 0.84);
+  box-shadow:
+    var(--ln-frame-step) 0 hsl(var(--ln-frame-color) / 0.56),
+    calc(var(--ln-frame-step) * 2) 0 hsl(var(--ln-frame-color) / 0.3),
+    0 var(--ln-frame-step) hsl(var(--ln-frame-color) / 0.56),
+    0 calc(var(--ln-frame-step) * 2) hsl(var(--ln-frame-color) / 0.3);
+  filter: blur(var(--ln-frame-softness));
+  pointer-events: none;
+  opacity: 0.95;
+  transition: opacity var(--ln-motion-base) var(--ln-ease-standard);
+}
+.ln-pixel-frame::before { inset-block-start: 0; inset-inline-start: 0; }
+.ln-pixel-frame::after { inset-block-end: 0; inset-inline-end: 0; transform: rotate(180deg); }
+.ln-pixel-frame:hover::before,
+.ln-pixel-frame:hover::after,
+.ln-pixel-frame:focus-within::before,
+.ln-pixel-frame:focus-within::after { opacity: 1; }
+
+/* 微型方块簇只服务于重点记录，与字标的颗粒呼应。 */
+.ln-pixel-motif {
+  display: inline-block;
+  position: relative;
+  flex: none;
+  width: var(--ln-space-6);
+  height: var(--ln-space-6);
+  pointer-events: none;
+}
+.ln-pixel-motif::before {
+  content: '';
+  position: absolute;
+  width: var(--ln-space-1);
+  height: var(--ln-space-1);
+  background: hsl(var(--ln-color-accent) / 0.58);
+  box-shadow:
+    var(--ln-space-2) 0 hsl(var(--ln-color-accent) / 0.24),
+    var(--ln-space-4) 0 hsl(var(--ln-color-accent) / 0.48),
+    var(--ln-space-2) var(--ln-space-2) hsl(var(--ln-color-accent) / 0.7),
+    var(--ln-space-4) var(--ln-space-2) hsl(var(--ln-color-accent) / 0.38),
+    var(--ln-space-4) var(--ln-space-4) hsl(var(--ln-color-accent) / 0.24);
+  filter: blur(var(--ln-frame-softness));
+}

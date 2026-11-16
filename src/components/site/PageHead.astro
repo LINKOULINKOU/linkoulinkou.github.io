@@ -1,0 +1,48 @@
+---
+import PixelAccent from '@/components/decor/PixelAccent.astro'
+/** 浏览页统一题头：栏目索引、主标题与真实工具。 */
+interface Props {
+  title: string
+  description?: string
+  hasAside?: boolean
+  accent?: 'bird' | 'maple' | 'swallow'
+}
+const { title, description, hasAside = Astro.slots.has('default'), accent } = Astro.props
+const section = Astro.url.pathname.split('/').filter(Boolean)[0] ?? ''
+const labels: Record<string, [string, string]> = {
+  tracking: ['01', 'FIELD NOTES'], blog: ['02', 'WRITING'], projects: ['03', 'WORK & EXPERIMENTS'],
+  about: ['04', 'ABOUT THE AUTHOR'], archives: ['05', 'THE ARCHIVE'], tags: ['06', 'SUBJECT INDEX'],
+  links: ['07', 'ELSEWHERE'], search: ['08', 'SEARCH THE LOGBOOK'], terms: ['09', 'COLOPHON']
+}
+const [number, label] = labels[section] ?? ['00', 'LINKOU LOGBOOK']
+const mascots: Record<string, 'bird' | 'maple' | 'swallow'> = { tracking: 'bird', blog: 'swallow', projects: 'swallow', about: 'maple', links: 'bird', archives: 'maple', tags: 'maple', search: 'bird' }
+const mascot = accent ?? mascots[section]
+---
+
+<header class='ln-page-head'>
+  <div class='ln-page-head__intro'>
+    <p class='ln-page-head__eyebrow'><span>{number}</span> / {label}</p>
+    <h1><span>{title}</span>{mascot && <PixelAccent kind={mascot} />}</h1>
+    {description && <p class='ln-page-head__description'>{description}</p>}
+  </div>
+  {hasAside && <div class='ln-page-head__aside'><slot /></div>}
+</header>
+
+<style>
+  .ln-page-head {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--ln-space-6) var(--ln-space-8);
+    padding-block: var(--ln-space-3) var(--ln-space-6);
+  }
+  .ln-page-head__intro { flex: 1 1 26ch; max-width: var(--ln-measure); }
+  .ln-page-head__eyebrow { margin: 0 0 var(--ln-space-4); color: hsl(var(--ln-color-muted)); font: var(--ln-text-micro) / var(--ln-leading-meta) var(--ln-font-mono); letter-spacing: var(--ln-tracking-label); }
+  .ln-page-head__eyebrow > span { color: hsl(var(--ln-color-accent)); }
+  .ln-page-head h1 { display: flex; align-items: center; gap: var(--ln-space-6); margin: 0; font-size: var(--ln-text-page-title); font-weight: var(--ln-weight-strong); line-height: var(--ln-leading-title); letter-spacing: -0.025em; overflow-wrap: anywhere; }
+  .ln-page-head__description { margin: var(--ln-space-3) 0 0; color: hsl(var(--ln-color-muted)); font-size: var(--ln-text-lead); line-height: var(--ln-leading-lead); }
+  .ln-page-head__aside { display: flex; flex: 0 1 auto; flex-wrap: wrap; align-items: center; gap: var(--ln-space-2) var(--ln-space-6); padding-bottom: var(--ln-space-1); }
+  .ln-page-head :global(.ln-page-head__tools) { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ln-space-2) var(--ln-space-4); color: hsl(var(--ln-color-muted)); font-size: var(--ln-text-meta); }
+</style>

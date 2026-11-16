@@ -1,8 +1,8 @@
 ---
 layout: '@/layouts/IndividualPage.astro'
 
-title: 'Copyright'
-description: 'Effective date: 2024-11-26'
-language: 'En'
+title: '版权声明'
+description: '内容版权与转载说明'
+language: '中文'
 back: '/terms'
 ---

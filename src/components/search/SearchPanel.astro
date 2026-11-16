@@ -1,0 +1,244 @@
+---
+import '@pagefind/default-ui/css/ui.css'
+
+interface Props {
+  lazy?: boolean
+  /** 将本站页头搜索锚点增强为聚焦本面板，不接管页头面板开关。 */
+  focusOnTrigger?: boolean
+}
+
+const { lazy = false, focusOnTrigger = false } = Astro.props
+---
+
+<site-search
+  class='ln-search-panel'
+  data-lazy={String(lazy)}
+  data-focus-on-trigger={String(focusOnTrigger)}
+>
+  <div class='ln-search-panel__mount' data-search-mount></div>
+  <p class='ln-search-panel__status' data-search-status aria-live='polite' hidden></p>
+  <noscript>
+    <p class='ln-search-panel__status'>
+      搜索需要 JavaScript。可以直接浏览<a href='/blog'>文章</a>、<a href='/tracking'>前沿追踪</a
+      >或<a href='/archives'>文章归档</a>。
+    </p>
+  </noscript>
+</site-search>
+
+<script>
+  const formatURL = (path: string) => path.replace(/(.)\/(#.*)?$/, '$1$2')
+
+  class SiteSearchElement extends HTMLElement {
+    #ready?: Promise<HTMLInputElement | null>
+    #events?: AbortController
+    #focusVersion = 0
+
+    connectedCallback() {
+      this.#events?.abort()
+      this.#events = new AbortController()
+      const { signal } = this.#events
+      // 协议：ready() 代表输入就绪；focus 请求可由关闭/断连同步撤销。
+      this.addEventListener('ln-search-focus', () => void this.focusSearch(), { signal })
+      this.addEventListener('ln-search-cancel-focus', () => this.#focusVersion++, { signal })
+      if (this.dataset.focusOnTrigger === 'true') {
+        document.getElementById('ln-search-trigger')?.addEventListener(
+          'click',
+          (event) => {
+            if (
+              event.defaultPrevented ||
+              event.metaKey ||
+              event.ctrlKey ||
+              event.shiftKey ||
+              event.altKey
+            )
+              return
+            event.preventDefault()
+            void this.focusSearch()
+          },
+          { signal }
+        )
+      }
+      if (this.dataset.lazy !== 'true') void this.ready()
+    }
+
+    disconnectedCallback() {
+      this.#events?.abort()
+      this.#focusVersion++
+    }
+
+    ready() {
+      return (this.#ready ??= this.#initialize().then((input) => {
+        if (!input) this.#ready = undefined
+        return input
+      }))
+    }
+
+    async focusSearch() {
+      const version = ++this.#focusVersion
+      const origin = document.activeElement
+      const input = await this.ready()
+      if (
+        input &&
+        version === this.#focusVersion &&
+        this.isConnected &&
+        !this.closest('[hidden]') &&
+        document.activeElement === origin
+      )
+        input.focus()
+    }
+
+    async #initialize(): Promise<HTMLInputElement | null> {
+      const mount = this.querySelector<HTMLElement>('[data-search-mount]')
+      const status = this.querySelector<HTMLElement>('[data-search-status]')
+      if (status) {
+        status.hidden = false
+        status.textContent = '正在准备搜索…'
+      }
+      try {
+        if (!mount) throw new Error('Missing search mount')
+        // @ts-expect-error — @pagefind/default-ui 未随包提供类型
+        const { PagefindUI } = await import('@pagefind/default-ui')
+        const ui = new PagefindUI({
+          element: mount,
+          baseUrl: import.meta.env.BASE_URL,
+          bundlePath: `${import.meta.env.BASE_URL.replace(/\/$/, '')}/pagefind/`,
+          showImages: false,
+          showSubResults: true,
+          translations: {
+            placeholder: '输入关键词',
+            zero_results: '未找到与「[SEARCH_TERM]」相关的内容，试试其他关键词。',
+            one_result: '找到 1 条与「[SEARCH_TERM]」相关的结果',
+            many_results: '找到 [COUNT] 条与「[SEARCH_TERM]」相关的结果',
+            searching: '搜索中…',
+            clear_search: '清空',
+            load_more: '加载更多结果',
+            filters_label: '筛选',
+            search_label: '搜索文章与前沿追踪'
+          },
+          processResult: (result: { url: string; sub_results: Array<{ url: string }> }) => {
+            result.url = formatURL(result.url)
+            result.sub_results = result.sub_results.map((sub) => ({
+              ...sub,
+              url: formatURL(sub.url)
+            }))
+          }
+        })
+        // PagefindUI 构造时同步挂载输入，不以定时轮询猜测就绪时机。
+        const input = mount.querySelector<HTMLInputElement>('input')
+        if (!input) {
+          ui.destroy()
+          throw new Error('Missing search input')
+        }
+        if (status) status.hidden = true
+        return input
+      } catch {
+        if (status)
+          status.textContent = '搜索暂不可用，可重试或直接浏览文章与追踪。'
+        return null
+      }
+    }
+  }
+
+  if (!customElements.get('site-search')) customElements.define('site-search', SiteSearchElement)
+</script>
+
+<style>
+  .ln-search-panel {
+    display: block;
+    width: 100%;
+    max-width: var(--ln-width-search);
+  }
+
+  .ln-search-panel__status {
+    margin: var(--ln-space-3) 0 0;
+    color: hsl(var(--ln-color-muted));
+    font-size: var(--ln-text-sm);
+    line-height: var(--ln-leading-ui);
+  }
+
+  .ln-search-panel__status a {
+    color: hsl(var(--ln-color-accent));
+    text-decoration: none;
+    font-weight: var(--ln-weight-medium);
+  }
+
+  .ln-search-panel :global(.pagefind-ui) {
+    --pagefind-ui-scale: 1;
+    --pagefind-ui-border-width: var(--ln-border-width);
+    --pagefind-ui-border-radius: 0;
+    --pagefind-ui-primary: hsl(var(--ln-color-accent));
+    --pagefind-ui-text: hsl(var(--ln-color-body));
+    --pagefind-ui-background: hsl(var(--ln-color-bg));
+    /* 输入框是必要控件边界，用 control（4.54:1）而不是装饰性浅线 */
+    --pagefind-ui-border: hsl(var(--ln-color-control));
+    --pagefind-ui-tag: hsl(var(--ln-color-muted));
+    --pagefind-ui-font: var(--ln-font-sans);
+  }
+
+  .ln-search-panel :global(.pagefind-ui__search-input) {
+    height: var(--ln-search-input-height);
+    font-size: var(--ln-text-list-title);
+  }
+
+  .ln-search-panel :global(.pagefind-ui__search-clear) {
+    min-width: var(--ln-hit-min);
+    min-height: var(--ln-hit-min);
+  }
+
+  .ln-search-panel :global(.pagefind-ui__result) {
+    padding-block: var(--ln-space-4);
+    border-top: var(--ln-border-width) solid hsl(var(--ln-color-line));
+  }
+
+  /* 结果标题回到站点列表标题档，不再用 21px/700 的第二套字阶 */
+  .ln-search-panel :global(.pagefind-ui__result-title.pagefind-ui__result-title) {
+    font-size: var(--ln-text-list-title);
+    font-weight: var(--ln-weight-medium);
+  }
+
+  .ln-search-panel :global(.pagefind-ui__result-title .pagefind-ui__result-link) {
+    display: block;
+    padding-block: var(--ln-space-2);
+  }
+
+  /* 子结果：缩进 + 细线，和主结果分开，不再是一堆等长行 */
+  .ln-search-panel :global(.pagefind-ui__result-nested) {
+    margin-top: var(--ln-space-2);
+    padding-left: var(--ln-space-4);
+    border-left: var(--ln-border-width) solid hsl(var(--ln-color-line));
+  }
+
+  .ln-search-panel
+    :global(.pagefind-ui__result-nested .pagefind-ui__result-title.pagefind-ui__result-title) {
+    font-size: var(--ln-text-base);
+    font-weight: var(--ln-weight-normal);
+  }
+
+  /* 高亮从 Pagefind 的纯黄改成站点强调色的淡底 */
+  .ln-search-panel :global(mark) {
+    background-color: hsl(var(--ln-color-selection));
+    color: inherit;
+    padding-inline: var(--ln-state-bar);
+    border-radius: var(--ln-radius-sm);
+  }
+
+  /* 零结果提示是状态文字，不是标题 */
+  .ln-search-panel :global(.pagefind-ui__message.pagefind-ui__message) {
+    font-size: var(--ln-text-sm);
+    font-weight: var(--ln-weight-normal);
+    color: hsl(var(--ln-color-muted));
+  }
+
+  /* 占位符要看得清：改用 control 色，不再 opacity .2 */
+  .ln-search-panel :global(.pagefind-ui__search-input::placeholder) {
+    color: hsl(var(--ln-color-control));
+    opacity: 1;
+  }
+
+  .ln-search-panel :global(.pagefind-ui__result-excerpt) {
+    font-size: var(--ln-text-reading);
+    line-height: var(--ln-leading-reading);
+  }
+</style>
+
+

@@ -1,0 +1,39 @@
+---
+import PixelAccent from '@/components/decor/PixelAccent.astro'
+interface Props {
+  title: string
+  href: string
+  label?: string
+  accent?: 'bird' | 'maple' | 'swallow'
+  index?: string
+  english?: string
+}
+const { title, href, label, accent, index = '01', english = 'LATEST NOTES' } = Astro.props
+---
+
+<header class='ln-section-head'>
+  <div class='ln-section-head__heading'>
+    <span class='ln-section-head__eyebrow'><span>{index}</span> / {english}</span>
+    <h2><span>{title}</span>{accent && <PixelAccent kind={accent} />}</h2>
+  </div>
+  <a class='ln-section-head__enter' {href} aria-label={label ?? title}>
+    <span>{label ?? '查看全部'}</span><span aria-hidden='true'>↗</span>
+  </a>
+</header>
+
+<style>
+  .ln-section-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--ln-space-4);
+    padding-block-end: var(--ln-space-4);
+  }
+  .ln-section-head__eyebrow { display: block; margin-bottom: var(--ln-space-2); color: hsl(var(--ln-color-muted)); font: var(--ln-text-micro) / var(--ln-leading-meta) var(--ln-font-mono); letter-spacing: var(--ln-tracking-label); }
+  .ln-section-head__eyebrow > span { color: hsl(var(--ln-color-accent)); }
+  .ln-section-head h2 { display: flex; align-items: center; gap: var(--ln-space-3); margin: 0; font-size: var(--ln-text-section); font-weight: var(--ln-weight-strong); line-height: var(--ln-leading-section); }
+  .ln-section-head__enter { display: inline-flex; flex: none; align-items: center; gap: var(--ln-space-2); min-height: var(--ln-link-min); margin-bottom: calc(var(--ln-space-1) * -1); color: hsl(var(--ln-color-muted)); font-size: var(--ln-text-meta); text-decoration: none; }
+  .ln-section-head__enter > :last-child { color: hsl(var(--ln-color-accent)); font-size: var(--ln-text-section); transition: transform var(--ln-motion-base) var(--ln-ease-standard); }
+  .ln-section-head__enter:hover { color: hsl(var(--ln-color-accent)); }
+  .ln-section-head__enter:hover > :last-child { transform: translate(2px, -2px); }
+</style>

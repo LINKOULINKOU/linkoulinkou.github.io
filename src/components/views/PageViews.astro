@@ -2,16 +2,35 @@
 // 浏览数：Vercount（不蒜子系替代，POST 计数、免注册、国内 CDN）。
 // 脚本按 span id 填充数值；若日后换回不蒜子原版，只要改 script 地址与 span 前缀。
 // 机制与显示点说明见 SITE-INDEX.md。
-import { cn } from 'astro-pure/utils'
-
 interface Props {
   class?: string
 }
 const { class: className } = Astro.props
 ---
 
-<div class={cn('text-sm text-muted-foreground', className)}>
-  <span id='vercount_value_page_pv'>…</span> views
-</div>
+<span class:list={['ln-views', className]}>
+  <span class='ln-views__value' id='vercount_value_page_pv'></span>
+  <span class='ln-views__unit'>次阅读</span>
+</span>
 
 <script is:inline defer src='https://vercount.one/js'></script>
+
+<style>
+  .ln-views {
+    display: inline-flex;
+    gap: var(--ln-space-1);
+    align-items: baseline;
+    color: hsl(var(--ln-color-muted));
+    font-size: var(--ln-text-meta);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* 数值未回填时不显示「… 次阅读」，用占位短横线代替 */
+  .ln-views__value:empty::before {
+    content: '—';
+  }
+
+  .ln-views__unit {
+    color: hsl(var(--ln-color-muted));
+  }
+</style>

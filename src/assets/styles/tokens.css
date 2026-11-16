@@ -1,0 +1,143 @@
+/* 全站设计变量：纯白底、炭黑文字与钴蓝像素。 */
+:root {
+  color-scheme: only light;
+  --ln-color-bg: 0 0% 100%;
+  --ln-color-ink: 220 14% 13%;
+  --ln-color-body: 220 8% 25%;
+  --ln-color-muted: 220 5% 44%;
+  --ln-color-accent: 225 73% 46%;
+  --ln-color-control: 220 5% 46%;
+  --ln-color-line: 220 8% 87%;
+  --ln-color-paper: 0 0% 100%;
+  --ln-color-faint: 220 6% 57%;
+  --ln-color-frame: 224 18% 42%;
+  --ln-frame-dot: 3px;
+  --ln-frame-step: 5px;
+  --ln-frame-softness: 0.12px;
+  --ln-color-selection: 225 65% 89%;
+  --ln-color-panel: 220 20% 98%;
+  --ln-color-current: 225 60% 95%;
+  --ln-color-hover: 220 20% 97%;
+  --ln-color-press: 220 15% 94%;
+  --ln-color-title-hover: 225 73% 39%;
+
+  --ln-font-sans: 'Inter', 'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
+  --ln-font-mono: 'SFMono-Regular', 'Cascadia Code', Consolas, monospace;
+  --ln-text-micro: 0.6875rem;
+  --ln-text-meta: 0.75rem;
+  --ln-text-sm: 0.8125rem;
+  --ln-text-base: 0.9375rem;
+  --ln-text-nav: 0.875rem;
+  --ln-text-lead: 0.875rem;
+  --ln-text-list-title: 1rem;
+  --ln-text-side-title: 0.9375rem;
+  --ln-text-section: 1rem;
+  --ln-text-page-title: 1.75rem;
+  --ln-text-feature: 1.25rem;
+  --ln-text-article-title: 1.875rem;
+  --ln-text-reading: 1rem;
+
+  --ln-leading-title: 1.3;
+  --ln-leading-article: 1.4;
+  --ln-leading-section: 1.4;
+  --ln-leading-ui: 1.65;
+  --ln-leading-lead: 1.8;
+  --ln-leading-reading: 1.85;
+  --ln-leading-nav: 1.4;
+  --ln-leading-meta: 1.5;
+  --ln-weight-normal: 400;
+  --ln-weight-medium: 500;
+  --ln-weight-strong: 600;
+  --ln-weight-title: 700;
+  --ln-tracking-label: 0.12em;
+
+  --ln-motion-hover: 180ms;
+  --ln-motion-fast: 100ms;
+  --ln-motion-base: 260ms;
+  --ln-motion-reveal: 850ms;
+  --ln-motion-wordmark: 4.8s;
+  --ln-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ln-ease-reveal: cubic-bezier(0.16, 1, 0.3, 1);
+  --ln-focus-width: 2px;
+  --ln-focus-offset: 3px;
+  --ln-state-bar: 2px;
+  --ln-inset-ring: 1px;
+  --ln-hit-min: 44px;
+  --ln-link-min: 32px;
+  --ln-icon-size: 16px;
+  --ln-bullet: 6px;
+  --ln-radius-sm: 2px;
+  --ln-border-width: 1px;
+
+  --ln-space-1: 4px;
+  --ln-space-2: 8px;
+  --ln-space-3: 12px;
+  --ln-space-4: 16px;
+  --ln-space-5: 20px;
+  --ln-space-6: 24px;
+  --ln-space-8: 32px;
+  --ln-space-10: 40px;
+  --ln-space-12: 48px;
+  --ln-space-16: 64px;
+  --ln-space-20: 80px;
+
+  --ln-page-max: 1120px;
+  --ln-page-inset: 20px;
+  --ln-header-pad: 24px;
+  --ln-content-top: 36px;
+  --ln-width-sidebar: 336px;
+  --ln-home-gap: 48px;
+  --ln-width-reading: 704px;
+  --ln-width-toc: 232px;
+  --ln-reading-gap: 40px;
+  --ln-measure: 62ch;
+  --ln-body-gap: 28px;
+  --ln-lead-gap: 12px;
+  --ln-row-min: 80px;
+  --ln-row-entry: 52px;
+  --ln-row-month: 44px;
+  --ln-entry-short-meta-width: 56px;
+  --ln-entry-date-width: 88px;
+  --ln-width-search: 880px;
+  --ln-search-max-height: 560px;
+  --ln-search-input-height: 52px;
+  --ln-search-viewport-height: 64vh;
+  --ln-wordmark-width: 120px;
+  --ln-wordmark-height: 43px;
+  --ln-wordmark-row: 18px;
+  --ln-wordmark-gap: 7px;
+  --ln-wordmark-softness: 0.28px;
+  --ln-motion-frame-bird: 170ms;
+  --ln-motion-frame-maple: 300ms;
+  --ln-motion-frame-swallow: 230ms;
+}
+@media (min-width: 40em) {
+  :root { --ln-page-inset: 32px; }
+}
+@media (min-width: 64em) {
+  :root { --ln-page-inset: 48px; }
+}
+html { font-family: var(--ln-font-sans); }
+body {
+  margin: 0;
+  background: hsl(var(--ln-color-bg));
+  color: hsl(var(--ln-color-body));
+  font-family: var(--ln-font-sans);
+  font-size: var(--ln-text-base);
+  line-height: var(--ln-leading-lead);
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3 { color: hsl(var(--ln-color-ink)); letter-spacing: -0.025em; }
+::selection { background: hsl(var(--ln-color-selection)); }
+:focus-visible {
+  outline: var(--ln-focus-width) solid hsl(var(--ln-color-accent));
+  outline-offset: var(--ln-focus-offset);
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,8 +1,8 @@
 ---
 layout: '@/layouts/IndividualPage.astro'
 
-title: 'Privacy Policy'
-description: 'Effective date: 2024-11-26'
-language: 'En'
+title: '隐私政策'
+description: '隐私与数据处理说明'
+language: '中文'
 back: '/terms'
 ---

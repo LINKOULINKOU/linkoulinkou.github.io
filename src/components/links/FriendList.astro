@@ -1,118 +1,121 @@
 ---
-import { Image } from 'astro:assets'
-
-import config from '@/site-config'
-
-interface AvatarCache {
-  hash: string
-  path: string
-}
-
+/** 友链按数据中的分组和顺序静态输出，不依赖头像、随机排序或客户端脚本。 */
 interface Friend {
-  avatar: string
-  avatar_cache?: AvatarCache
   name: string
   intro: string
   link: string
 }
-
-interface FriendList {
-  id_name: string
-  desc: string
-  link_list: Friend[]
-}
-
-function shuffle(arr: Friend[]) {
-  return arr.sort(() => {
-    return Math.random() - 0.5
-  })
-}
-
 interface Props {
   title?: string
-  list: FriendList
+  list: {
+    id_name: string
+    desc: string
+    link_list: Friend[]
+  }
 }
-const { title, list: friendList, ...props } = Astro.props
-
-const getAvatarSrc = (friend: Friend) =>
-  (config.integ?.links?.cacheAvatar ?? false)
-    ? (friend.avatar_cache?.path ?? friend.avatar)
-    : friend.avatar
+const { title, list } = Astro.props
+const heading = title ?? list.desc ?? list.id_name
 ---
 
-{title && <h2 id={friendList.id_name}>{title}</h2>}
-<div class='grid gap-3.5 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3' {...props}>
-  {
-    friendList.link_list.length > 0 ? (
-      shuffle(friendList.link_list).map((frd: Friend) => (
-        <a href={frd.link} target='_blank' class='no-underline'>
-          <div class='group relative h-full overflow-hidden rounded-2xl border bg-background px-2.5 py-1.5 transition-colors hover:bg-muted sm:px-4 sm:py-2'>
-            <div class='relative z-10 flex h-full items-center gap-3'>
-              {/* avatar */}
-              <div class='relative h-14 w-14 min-w-14 overflow-hidden rounded-full'>
-                <Image
-                  class='my-0 bg-card flex items-center justify-center'
-                  src={getAvatarSrc(frd)}
-                  height={80}
-                  width={80}
-                  alt='Avatar'
-                  loading='lazy'
-                />
-                <div class='absolute start-0 top-0 h-full w-full'>
-                  <div class='flex h-full w-full items-center justify-center rounded-full bg-foreground opacity-0 transition-opacity duration-300 ease-in-out group-hover:opacity-50'>
-                    <svg
-                      xmlns='http://www.w3.org/2000/svg'
-                      width='32'
-                      height='32'
-                      viewBox='0 0 24 24'
-                      fill='none'
-                      stroke-width='2.5'
-                      stroke-linecap='round'
-                      stroke-linejoin='round'
-                      class='me-2 stroke-background'
-                    >
-                      <line
-                        x1='5'
-                        y1='12'
-                        x2='19'
-                        y2='12'
-                        class='translate-x-4 scale-x-0 transition-all duration-300 ease-in-out group-hover:translate-x-1 group-hover:scale-x-100'
-                      />
-                      <polyline
-                        points='12 5 19 12 12 19'
-                        class='translate-x-0 transition-all duration-300 ease-in-out group-hover:translate-x-1'
-                      />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-              {/* details */}
-              <div class='flex flex-col gap-y-1'>
-                <p class='my-0 line-clamp-1 text-sm'>{frd.name} </p>
-                <p class='my-0 line-clamp-1 text-xs text-muted-foreground'>{frd.intro}</p>
-              </div>
-            </div>
-            {/* avatar bg */}
-            <Image
-              class='absolute -start-2 top-0 z-0 my-0 h-full w-2/3 bg-white object-cover opacity-15'
-              src={getAvatarSrc(frd)}
-              height={80}
-              width={80}
-              alt='Avatar background'
-              loading='lazy'
-              style={{
-                msMaskImage:
-                  '-ms-linear-gradient(right, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 100%)',
-                WebkitMaskImage:
-                  '-webkit-linear-gradient(right, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 100%)',
-                maskImage: 'linear-gradient(to left, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 100%)'
-              }}
-            />
-          </div>
-        </a>
-      ))
-    ) : (
-      <p>Nothing here.</p>
-    )
+{
+  list.link_list.length > 0 ? (
+    <section class='ln-friends' aria-labelledby={list.id_name}>
+      <div class='ln-friends__head'>
+        <h3 id={list.id_name}>{heading}</h3>
+        <span>{list.link_list.length} 个站点</span>
+      </div>
+      <ul class='ln-friends__list'>
+        {list.link_list.map((friend) => (
+          <li>
+            <a class='ln-friends__link' href={friend.link}>
+              <span class='ln-friends__name'>{friend.name}</span>
+              {friend.intro && <span class='ln-friends__intro'>{friend.intro}</span>}
+              <span class='ln-friends__url'>{friend.link}</span>
+              <span class='ln-friends__arrow' aria-hidden='true'>↗</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  ) : (
+    <p class='ln-friends__empty'>暂无友链。</p>
+  )
+}
+
+<style>
+  .ln-friends + .ln-friends {
+    margin-top: var(--ln-space-10);
   }
-</div>
+  .ln-friends__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--ln-space-4);
+    padding-bottom: var(--ln-space-4);
+  }
+  .ln-friends h3 {
+    margin: 0;
+    font-size: var(--ln-text-sm);
+    font-weight: var(--ln-weight-medium);
+  }
+  .ln-friends__head > span {
+    color: hsl(var(--ln-color-muted));
+    font-size: var(--ln-text-meta);
+    font-variant-numeric: tabular-nums;
+  }
+  .ln-friends__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .ln-friends__link {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: var(--ln-space-2) var(--ln-space-6);
+    min-height: var(--ln-hit-min);
+    padding-block: var(--ln-space-6);
+    color: hsl(var(--ln-color-body));
+    text-decoration: none;
+    overflow-wrap: anywhere;
+    transition: background-color var(--ln-motion-hover) var(--ln-ease-standard);
+  }
+  .ln-friends__link:hover,
+  .ln-friends__link:focus-visible {
+    background: hsl(var(--ln-color-hover));
+  }
+  .ln-friends__link:active {
+    background: hsl(var(--ln-color-press));
+  }
+  .ln-friends__name {
+    color: hsl(var(--ln-color-ink));
+    font-size: var(--ln-text-list-title);
+    font-weight: var(--ln-weight-medium);
+  }
+  .ln-friends__link:hover .ln-friends__name {
+    color: hsl(var(--ln-color-accent));
+  }
+  .ln-friends__intro {
+    grid-column: 1;
+    font-size: var(--ln-text-base);
+    line-height: var(--ln-leading-reading);
+  }
+  .ln-friends__url {
+    grid-column: 1;
+    color: hsl(var(--ln-color-muted));
+    font-family: var(--ln-font-mono);
+    font-size: var(--ln-text-meta);
+    line-height: var(--ln-leading-meta);
+  }
+  .ln-friends__arrow {
+    grid-column: 2;
+    grid-row: 1;
+    color: hsl(var(--ln-color-accent));
+  }
+  .ln-friends__empty {
+    margin: 0;
+    color: hsl(var(--ln-color-muted));
+    font-size: var(--ln-text-meta);
+    line-height: var(--ln-leading-meta);
+  }
+</style>

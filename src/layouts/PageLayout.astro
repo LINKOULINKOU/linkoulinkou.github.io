@@ -1,0 +1,37 @@
+---
+/** 普通页仅编排页内标题、工具/分类与正文；站点导航由 BaseLayout 持有。 */
+import type { SiteMeta } from 'astro-pure/types'
+import BaseLayout from '@/layouts/BaseLayout.astro'
+import PageHead from '@/components/site/PageHead.astro'
+
+interface Props {
+  meta: SiteMeta
+  title: string
+  description?: string
+  accent?: 'bird' | 'maple' | 'swallow'
+}
+const { meta, title, description, accent } = Astro.props
+const hasTools = Astro.slots.has('tools')
+const hasFilters = Astro.slots.has('filters')
+---
+
+<BaseLayout {meta}>
+  <div class='ln-page'>
+    <PageHead {title} {description} {accent} hasAside={hasTools || hasFilters}>
+      {hasTools && <div class='ln-page-head__tools'><slot name='tools' /></div>}
+      <slot name='filters' />
+    </PageHead>
+    <div class='ln-page__body'><slot /></div>
+  </div>
+</BaseLayout>
+
+<style>
+  .ln-page {
+    display: grid;
+    gap: var(--ln-space-6);
+    min-width: 0;
+  }
+  .ln-page__body {
+    min-width: 0;
+  }
+</style>

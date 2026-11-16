@@ -1,0 +1,304 @@
+/* 阅读页框架：正文栏、目录轨、窄屏折叠目录与文末落款。
+   文章头与正文排版在 article.css。 */
+
+.ln-reading {
+  /* 阅读尺度：660px ÷ 17px ≈ 38.8 个全角字，落在 30–40 字的舒适区间 */
+  --reading-measure: 660px;
+  --reading-rail: 216px;
+  --reading-gutter: 64px;
+  --reading-inset: 20px;
+  --reading-body-gap: 28px;
+
+  display: block;
+  min-width: 0;
+}
+
+.ln-back-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: var(--reading-measure, 704px);
+  margin-bottom: var(--ln-space-8);
+}
+.ln-reading-label {
+  color: hsl(var(--ln-color-muted));
+  font: var(--ln-text-micro) / var(--ln-leading-meta) var(--ln-font-mono);
+  letter-spacing: var(--ln-tracking-label);
+}
+
+.ln-reading__main {
+  min-width: 0;
+}
+
+.ln-reading__head {
+  max-width: var(--reading-measure);
+  padding-bottom: var(--ln-space-4);
+}
+
+.ln-reading__head > :first-child {
+  margin-top: 0;
+}
+
+/* 标题块之后：先给正文一个明确的开始，再让目录从正文首行起排 */
+.ln-reading__body {
+  display: grid;
+  grid-template-columns: minmax(0, var(--reading-measure));
+  align-items: start;
+}
+
+.ln-prose {
+  min-width: 0;
+  margin-top: var(--reading-body-gap);
+}
+
+/* ── 窄屏：原生 details 目录，正文前、可键盘操作 ───────── */
+.ln-toc-mobile {
+  max-width: var(--reading-measure);
+  margin: var(--ln-space-4) 0 0;
+  border-bottom: var(--ln-border-width) solid hsl(var(--ln-color-line));
+  font-size: var(--ln-text-meta);
+}
+
+.ln-toc-mobile > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--ln-hit-min);
+  color: hsl(var(--ln-color-body));
+  font-weight: var(--ln-weight-medium);
+  cursor: pointer;
+  list-style: none;
+}
+
+.ln-toc-mobile > summary::-webkit-details-marker {
+  display: none;
+}
+
+.ln-toc-mobile > summary::after {
+  width: 7px;
+  height: 7px;
+  margin-inline-end: var(--ln-space-1);
+  border-right: var(--ln-border-width) solid hsl(var(--ln-color-muted));
+  border-bottom: var(--ln-border-width) solid hsl(var(--ln-color-muted));
+  content: '';
+  transform: rotate(45deg);
+  transition: transform var(--ln-motion-base) var(--ln-ease-standard);
+}
+
+.ln-toc-mobile[open] > summary {
+  color: hsl(var(--ln-color-ink));
+}
+
+.ln-toc-mobile[open] > summary::after {
+  transform: rotate(225deg);
+}
+
+.ln-toc-mobile .ln-toc {
+  padding-bottom: var(--ln-space-4);
+}
+
+/* ── 目录：细线书脊 + 当前章节的 2px 钴蓝条 ───────────── */
+.ln-toc {
+  padding-left: var(--ln-space-4);
+  border-left: var(--ln-border-width) solid hsl(var(--ln-color-line));
+}
+
+.ln-toc__title {
+  margin: 0 0 var(--ln-space-3);
+  color: hsl(var(--ln-color-muted));
+  font-size: 0.75rem;
+  font-weight: var(--ln-weight-medium);
+  letter-spacing: 0.12em;
+  line-height: 1.4;
+}
+
+.ln-toc__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ln-toc__item + .ln-toc__item {
+  margin-top: 2px;
+}
+
+.ln-toc__item a {
+  position: relative;
+  display: block;
+  padding: 5px 0;
+  color: hsl(var(--ln-color-muted));
+  font-size: var(--ln-text-meta);
+  line-height: 1.55;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  transition: color var(--ln-motion-hover) var(--ln-ease-standard);
+}
+
+.ln-toc__item--h2 > a {
+  color: hsl(var(--ln-color-body));
+  font-weight: var(--ln-weight-medium);
+}
+
+.ln-toc__item--h3 > a {
+  padding-left: var(--ln-space-4);
+  font-size: 0.78125rem;
+}
+
+.ln-toc__item a:hover {
+  color: hsl(var(--ln-color-ink));
+}
+
+/* 当前项只换字色并压一条钴蓝短线，不改变字重与盒宽 */
+.ln-toc__item a[aria-current='true'] {
+  color: hsl(var(--ln-color-ink));
+}
+
+.ln-toc__item a[aria-current='true']::before {
+  position: absolute;
+  inset-block: 5px;
+  inset-inline-start: calc(var(--ln-space-4) * -1 - 1px);
+  width: var(--ln-state-bar);
+  background-color: hsl(var(--ln-color-accent));
+  content: '';
+}
+
+/* 窄屏 details 里的紧凑目录：命中区放大到 44px */
+.ln-toc--compact .ln-toc__title {
+  display: none;
+}
+
+.ln-toc--compact .ln-toc__item a {
+  display: flex;
+  align-items: center;
+  min-height: var(--ln-hit-min);
+  padding-block: 0;
+}
+
+.ln-toc--compact .ln-toc__item--h3 > a {
+  min-height: 40px;
+}
+
+.ln-toc--compact .ln-toc__item a[aria-current='true']::before {
+  inset-block: 8px;
+}
+
+/* ── 桌面：目录成为正文右侧的独立轨道 ─────────────────── */
+.ln-reading__toc {
+  display: none;
+}
+
+@media (min-width: 72em) {
+  .ln-reading__body {
+    grid-template-columns: var(--reading-measure) var(--reading-rail);
+    column-gap: var(--reading-gutter);
+    justify-content: start;
+  }
+
+  .ln-toc-mobile {
+    display: none;
+  }
+
+  .ln-reading__toc {
+    display: block;
+    margin-top: var(--reading-body-gap);
+    position: sticky;
+    top: var(--ln-space-8);
+    max-height: calc(100vh - var(--ln-space-16));
+    max-height: calc(100dvh - var(--ln-space-16));
+    padding: 2px var(--ln-space-1) var(--ln-space-2) 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+
+  .ln-reading__toc .ln-toc__title {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding-block: 2px var(--ln-space-2);
+    background-color: hsl(var(--ln-color-bg));
+  }
+}
+
+/* ── 文末：上一篇/下一篇之后是落款，不再各画一条横线 ───── */
+.ln-reading__footer {
+  max-width: var(--reading-measure);
+}
+
+.ln-copyright {
+  margin-top: var(--ln-space-4);
+  color: hsl(var(--ln-color-muted));
+  font-size: 0.78125rem;
+  line-height: 1.6;
+}
+
+/* 没有上一篇/下一篇时，落款自己承担正文后的留白，并用一条细线收尾 */
+.ln-copyright:first-child {
+  margin-top: var(--ln-space-8);
+  padding-top: var(--ln-space-4);
+  border-top: var(--ln-border-width) solid hsl(var(--ln-color-line));
+}
+
+.ln-copyright__line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px var(--ln-space-3);
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.ln-copyright__line--work {
+  color: hsl(var(--ln-color-muted));
+}
+
+.ln-copyright__author {
+  color: hsl(var(--ln-color-ink));
+  font-weight: var(--ln-weight-medium);
+}
+
+.ln-copyright__title {
+  max-width: 34em;
+  color: hsl(var(--ln-color-body));
+  overflow-wrap: anywhere;
+}
+
+.ln-copyright__line--terms {
+  margin-top: 2px;
+  color: hsl(var(--ln-color-muted));
+  font-size: 0.75rem;
+}
+
+.ln-copyright a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--ln-link-min);
+  color: inherit;
+  text-decoration: none;
+}
+
+.ln-copyright a:hover {
+  color: hsl(var(--ln-color-accent));
+}
+
+/* 浏览数在元信息行末端对齐；窄屏回到正常流，避免孤零零右漂 */
+@media (min-width: 40em) {
+  .ln-article-meta .ln-views {
+    margin-inline-start: auto;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 39.999em) {
+  .ln-article-meta .ln-views {
+    margin-inline-start: 0;
+    white-space: nowrap;
+  }
+}
+
+/* 浏览数异步回填：先给数值留出固定宽度，避免数字出现时推动同一行的元信息 */
+.ln-article-meta .ln-views__value {
+  display: inline-block;
+  min-inline-size: 5.5ch;
+  text-align: end;
+}

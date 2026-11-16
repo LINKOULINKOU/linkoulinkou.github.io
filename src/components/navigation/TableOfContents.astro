@@ -1,0 +1,92 @@
+---
+import type { MarkdownHeading } from 'astro'
+
+interface Props {
+  headings: MarkdownHeading[]
+  /** 窄屏 details 里使用的紧凑变体 */
+  compact?: boolean
+}
+
+const { headings, compact = false } = Astro.props
+const items = headings.filter((heading) => heading.depth === 2 || heading.depth === 3)
+---
+
+{
+  items.length > 0 && (
+    <nav class:list={['ln-toc', { 'ln-toc--compact': compact }]} aria-label='目录'>
+      <p class='ln-toc__title'>目录</p>
+      <ol class='ln-toc__list'>
+        {items.map((heading) => (
+          <li class:list={['ln-toc__item', `ln-toc__item--h${heading.depth}`]}>
+            <a href={`#${heading.slug}`} data-toc-link={heading.slug}>
+              {heading.text}
+            </a>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  )
+}
+
+<script>
+  // scrollspy：把当前阅读位置的标题标出来；窄屏与桌面两份目录共用同一状态。
+  const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('[data-toc-link]'))
+
+  if (links.length) {
+    const targets = new Map<string, HTMLElement>()
+    for (const link of links) {
+      const id = link.dataset.tocLink
+      if (!id || targets.has(id)) continue
+      const el = document.getElementById(id)
+      if (el) targets.set(id, el)
+    }
+
+    let lastSlug: string | null | undefined
+    const setCurrent = (slug: string | null) => {
+      if (slug === lastSlug) return
+      lastSlug = slug
+      for (const link of links) {
+        if (slug && link.dataset.tocLink === slug) link.setAttribute('aria-current', 'true')
+        else link.removeAttribute('aria-current')
+      }
+
+      // 长目录：把当前项带回目录轨的可见区，但不滚动正文
+      const railLink = links.find(
+        (link) => link.dataset.tocLink === slug && link.closest('.ln-reading__toc')
+      )
+      const rail = railLink?.closest<HTMLElement>('.ln-reading__toc')
+      if (!railLink || !rail || !rail.offsetParent) return
+      const rect = railLink.getBoundingClientRect()
+      const railRect = rail.getBoundingClientRect()
+      const top = railRect.top + 44
+      const bottom = railRect.bottom - 8
+      if (rect.top < top) rail.scrollTop += rect.top - top
+      else if (rect.bottom > bottom) rail.scrollTop += rect.bottom - bottom
+    }
+
+    const headings = [...targets.entries()]
+    const offset = 96
+    let frame = 0
+
+    const update = () => {
+      frame = 0
+      let current: string | null = null
+      for (const [slug, el] of headings) {
+        if (el.getBoundingClientRect().top <= offset) current = slug
+        else break
+      }
+      setCurrent(current)
+    }
+
+    const requestUpdate = () => {
+      if (frame) return
+      frame = requestAnimationFrame(update)
+    }
+
+    update()
+    window.addEventListener('load', requestUpdate)
+    window.addEventListener('scroll', requestUpdate, { passive: true })
+    window.addEventListener('resize', requestUpdate)
+    window.addEventListener('hashchange', requestUpdate)
+  }
+</script>

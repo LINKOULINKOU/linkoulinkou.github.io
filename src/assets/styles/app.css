@@ -1,48 +1,28 @@
-/* Theme */
+/* Pure 旧变量 → 设计 token 的桥。此处只做映射，不重复定义数值。 */
 :root {
-  /* Primary */
-  --primary: 200 29% 45%;
-  /* Foreground */
-  --foreground: 240 10% 3.9%;
-  --muted-foreground: 240 3.8% 28.1%;
-  /* Background */
-  --background: 210 33% 99%;
-  --muted: 240 4.8% 96%;
-  --card: 0 0% 90%;
-
-  /* Basic */
-  --border: 240 5.9% 88%;
-  --input: 240 5.9% 90%;
-  --ring: 240 5.9% 10%;
-  --radius: 0.5rem;
-}
-.dark {
-  /* Primary */
-  --primary: 195 95% 85%;
-  /* Foreground */
-  --foreground: 0 0% 98%;
-  --muted-foreground: 240 5% 74.9%;
-  /* Background */
-  --background: 240 20.54% 5.2%;
-  --muted: 240 5.9% 13%;
-  --card: 240 3.7% 24.9%;
-
-  /* Basic */
-  --border: 240 3.7% 22.9%;
-  --input: 240 3.7% 17.9%;
-  --ring: 240 4.9% 83.9%;
-}
-:root {
+  --primary: var(--ln-color-accent);
+  --foreground: var(--ln-color-ink);
+  --muted-foreground: var(--ln-color-muted);
+  --background: var(--ln-color-bg);
+  --muted: var(--ln-color-hover);
+  --card: var(--ln-color-hover);
+  --border: var(--ln-color-line);
+  /* 控件边界用 control，不用装饰性浅线 */
+  --input: var(--ln-color-control);
+  --ring: var(--ln-color-accent);
+  --radius: var(--ln-radius-sm);
   --un-default-border-color: hsl(var(--border) / 1);
-}
-html.dark {
-  color-scheme: dark;
+  color-scheme: only light;
 }
 
-/* Global */
+/* 旧 localStorage.theme 无消费者即不生效，不做每页强制写回。 */
+
+/* 链接颜色由各组件决定：导航/列表保持正文色，正文内链接才用强调色。
+   这里只统一过渡属性，避免各组件各写一套。 */
 a {
-  transition: color 0.2s ease;
-  &:hover {
-    color: hsl(var(--primary) / var(--un-text-opacity, 1));
-  }
+  transition:
+    background-color var(--ln-motion-hover) var(--ln-ease-standard),
+    color var(--ln-motion-hover) var(--ln-ease-standard),
+    border-color var(--ln-motion-hover) var(--ln-ease-standard),
+    box-shadow var(--ln-motion-hover) var(--ln-ease-standard);
 }

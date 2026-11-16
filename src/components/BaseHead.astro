@@ -1,6 +1,4 @@
 ---
-import { Font } from 'astro:assets'
-
 import type { SiteMeta } from 'astro-pure/types'
 import config from 'virtual:config'
 
@@ -14,11 +12,10 @@ const socialImageURL = new URL(ogImage ? ogImage : config.socialCard, Astro.url)
 ---
 
 <meta charset='utf-8' />
-<meta
-  content='width=device-width, initial-scale=1.0, shrink-to-fit=no, viewport-fit=cover'
-  name='viewport'
-/>
+<meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no, viewport-fit=cover' name='viewport' />
 <meta content='IE=edge' http-equiv='X-UA-Compatible' />
+<meta name='color-scheme' content='light' />
+<meta name='theme-color' content='#ffffff' />
 <title>{siteTitle}</title>
 
 {/* Icons / Favicon */}
@@ -28,14 +25,6 @@ const socialImageURL = new URL(ogImage ? ogImage : config.socialCard, Astro.url)
 <link rel='icon' type='image/png' sizes='16x16' href='/favicon/favicon-16x16.png' />
 <link rel='apple-touch-icon' sizes='180x180' href='/favicon/apple-touch-icon.png' />
 <link rel='manifest' href='/favicon/site.webmanifest' />
-
-{/* Font preloads */}
-<Font cssVariable='--font-satoshi' preload={[{ subset: 'latin', style: 'normal' }]} />
-<style>
-  body {
-    font-family: var(--font-satoshi);
-  }
-</style>
 
 {/* Canonical URL */}
 <link rel='canonical' href={canonicalURL} />
@@ -47,7 +36,6 @@ const socialImageURL = new URL(ogImage ? ogImage : config.socialCard, Astro.url)
 
 {/* Theme Color */}
 {/* <meta content='' name='theme-color' /> */}
-<meta name='color-scheme' content='light dark' />
 
 {/* Open Graph / Facebook */}
 <meta content={articleDate ? 'article' : 'website'} property='og:type' />

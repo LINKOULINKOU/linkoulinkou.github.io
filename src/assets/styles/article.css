@@ -1,0 +1,442 @@
+/* 阅读页正文排版：文章头、Markdown 正文、来源行。
+   数值以 tokens.css 为源；阅读尺度的少量局部变量在 reading.css 的 .ln-reading 上定义。 */
+
+/* ── 文章头 ───────────────────────────────────────────── */
+.ln-article-draft {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ln-space-2);
+  margin: 0 0 var(--ln-space-3);
+  color: hsl(var(--ln-color-accent));
+  font-size: var(--ln-text-meta);
+  font-weight: var(--ln-weight-medium);
+}
+
+.ln-article-draft::before {
+  content: '';
+  width: var(--ln-bullet);
+  height: var(--ln-bullet);
+  background-color: currentColor;
+}
+
+.ln-article-title {
+  margin: 0;
+  color: hsl(var(--ln-color-ink));
+  font-size: var(--ln-text-article-title);
+  font-weight: var(--ln-weight-strong);
+  line-height: 1.3;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.ln-article-lead {
+  max-width: 36em;
+  margin: var(--ln-lead-gap) 0 0;
+  color: hsl(var(--ln-color-muted));
+  font-size: 1.0625rem;
+  line-height: 1.75;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+
+.ln-article-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ln-space-1) var(--ln-space-4);
+  margin: var(--ln-space-4) 0 0;
+  color: hsl(var(--ln-color-muted));
+  font-size: var(--ln-text-meta);
+  line-height: 1.55;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 与列表条目的方形项目符呼应：一个 6px 灰点标出元信息的起点 */
+.ln-article-meta::before {
+  content: '';
+  flex: none;
+  width: var(--ln-bullet);
+  height: var(--ln-bullet);
+  background-color: hsl(var(--ln-color-line));
+}
+
+.ln-article-tags {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.ln-article-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--ln-link-min);
+  padding-inline: 2px;
+  color: hsl(var(--ln-color-body));
+  font-weight: var(--ln-weight-medium);
+  text-decoration: none;
+}
+
+.ln-article-tag + .ln-article-tag::before {
+  margin-inline: var(--ln-space-2);
+  color: hsl(var(--ln-color-line));
+  font-weight: var(--ln-weight-normal);
+  content: '/';
+}
+
+.ln-article-tag:hover {
+  color: hsl(var(--ln-color-accent));
+}
+
+.ln-article-updated,
+.ln-article-language {
+  color: hsl(var(--ln-color-muted));
+}
+
+/* ── 正文 ─────────────────────────────────────────────── */
+.ln-prose {
+  /* 取消 UnoCSS typography 的 65ch 上限；实际行长由 reading.css 的栏宽决定 */
+  max-width: none;
+  color: hsl(var(--ln-color-body));
+  font-size: 1.0625rem;
+  line-height: 1.9;
+  letter-spacing: 0;
+}
+
+.ln-prose p {
+  margin: 0 0 1.1em;
+}
+
+/* 首段略大、提亮：不靠首字下沉，也能让正文有一个进入点 */
+.ln-prose > p:first-child,
+.ln-prose > .tracking-note + p {
+  color: hsl(var(--ln-color-ink));
+  font-size: 1.08em;
+  line-height: 1.85;
+}
+
+.ln-prose > :first-child {
+  margin-top: 0;
+}
+
+.ln-prose > :last-child {
+  margin-bottom: 0;
+}
+
+/* 标题用字号、字重和段前留白切段，不为每节增加通栏横线。 */
+.ln-prose h2,
+.ln-prose h3,
+.ln-prose h4 {
+  color: hsl(var(--ln-color-ink));
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+  scroll-margin-top: 24px;
+}
+
+.ln-prose h2 {
+  margin: 2.8em 0 0.9em;
+  padding-top: 0;
+  font-size: var(--ln-text-feature);
+  font-weight: var(--ln-weight-strong);
+  line-height: 1.42;
+  text-wrap: balance;
+}
+
+.ln-prose h2:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.ln-prose h3 {
+  margin: 2em 0 0.55em;
+  font-size: 1.125rem;
+  font-weight: var(--ln-weight-strong);
+  line-height: 1.5;
+  text-wrap: balance;
+}
+
+.ln-prose h4 {
+  margin: 1.8em 0 0.45em;
+  font-size: 1.0625rem;
+  font-weight: var(--ln-weight-strong);
+  line-height: 1.6;
+}
+
+.ln-prose h2 + h3,
+.ln-prose h2 + h4 {
+  margin-top: 1em;
+}
+
+/* ── 列表 ─────────────────────────────────────────────── */
+.ln-prose ul,
+.ln-prose ol {
+  margin: 0 0 1.1em;
+  padding-inline-start: 1.45em;
+}
+
+.ln-prose ul {
+  list-style-type: square;
+}
+
+.ln-prose li {
+  margin: 0.35em 0;
+  padding-inline-start: 0.2em;
+}
+
+.ln-prose li > ul,
+.ln-prose li > ol {
+  margin: 0.35em 0;
+}
+
+.ln-prose ul > li::marker {
+  color: hsl(var(--ln-color-muted));
+}
+
+.ln-prose ol > li::marker {
+  color: hsl(var(--ln-color-muted));
+  font-variant-numeric: tabular-nums;
+}
+
+.ln-prose li p {
+  margin: 0.45em 0;
+}
+
+/* ── 引用：无卡片、无引号装饰，只留一条钴蓝细线 ───────── */
+.ln-prose blockquote {
+  margin: 1.8em 0;
+  padding: 0 0 0 var(--reading-inset, 20px);
+  border: 0;
+  border-inline-start: 2px solid hsl(var(--ln-color-accent));
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: hsl(var(--ln-color-body));
+  font-size: 1.02em;
+  font-style: normal;
+  font-weight: var(--ln-weight-normal);
+  line-height: 1.85;
+  overflow: visible;
+}
+
+.ln-prose blockquote p {
+  margin: 0 0 0.6em;
+}
+
+.ln-prose blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+.ln-prose blockquote p:first-of-type::before,
+.ln-prose blockquote p:last-of-type::after,
+.ln-prose blockquote::after {
+  content: none;
+}
+
+/* 生成器产出的「调研说明」折叠框里已有引用块样式，不要套正文的钴蓝竖线 */
+.ln-prose .tracking-note blockquote {
+  margin: var(--ln-space-3) 0 var(--ln-space-1);
+  padding: 0;
+  border: 0;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.ln-prose .tracking-note blockquote p {
+  margin: 0;
+}
+
+/* ── 行内代码 / 代码块 ────────────────────────────────── */
+.ln-prose :not(pre) > code {
+  padding: 0.12em 0.34em;
+  border: var(--ln-border-width) solid hsl(var(--ln-color-line));
+  border-radius: var(--ln-radius-sm);
+  background-color: hsl(var(--ln-color-panel));
+  color: hsl(var(--ln-color-ink));
+  font-family: var(--ln-font-mono);
+  font-size: 0.86em;
+  font-weight: var(--ln-weight-normal);
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+
+.ln-prose .astro-code {
+  margin: 1.8em 0;
+  border: var(--ln-border-width) solid hsl(var(--ln-color-line));
+  border-radius: var(--ln-radius-sm);
+  background-color: hsl(var(--ln-color-panel)) !important;
+  font-size: 0.8125rem;
+  line-height: 1.7;
+}
+
+.ln-prose .astro-code pre {
+  font-size: inherit;
+  line-height: inherit;
+  overflow-x: auto;
+}
+
+.ln-prose .astro-code code {
+  font-family: var(--ln-font-mono);
+  font-size: inherit;
+  line-height: inherit;
+}
+
+/* Shiki 自带的语言标签：从灰色小块收成右上角的次级小字 */
+.ln-prose .astro-code .language {
+  top: var(--ln-space-2);
+  right: var(--ln-space-3);
+  padding: 0;
+  background: transparent;
+  color: hsl(var(--ln-color-muted));
+  font-size: 0.6875rem;
+  line-height: 1.6;
+  letter-spacing: 0.04em;
+}
+
+/* ── 表格：桌面铺满正文栏；窄屏在容器内横向滚动 ───────── */
+.ln-prose table {
+  display: table;
+  width: 100%;
+  max-width: 100%;
+  margin: 1.8em 0;
+  border-collapse: collapse;
+  font-size: 0.9375em;
+  line-height: 1.65;
+}
+
+.ln-prose thead th {
+  padding: 0 0.9em 0.65em;
+  border-bottom: var(--ln-border-width) solid hsl(var(--ln-color-ink) / 0.3);
+  color: hsl(var(--ln-color-ink));
+  font-weight: var(--ln-weight-strong);
+  text-align: start;
+}
+
+.ln-prose tbody td {
+  padding: 0.65em 0.9em;
+  border: 0;
+  border-bottom: var(--ln-border-width) solid hsl(var(--ln-color-line));
+  text-align: start;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.ln-prose th:first-child,
+.ln-prose td:first-child {
+  padding-inline-start: 0;
+}
+
+.ln-prose th:last-child,
+.ln-prose td:last-child {
+  padding-inline-end: 0;
+}
+
+.ln-prose tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* 窄屏表格改成「块容器 + 固定列宽的分段表格」，在容器内滚动。
+   没有 colgroup 时，thead/tbody 各自按 table-layout:fixed 等分，列仍能对齐。 */
+@media (max-width: 47.999em) {
+  .ln-prose table {
+    display: block;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+  }
+
+  .ln-prose thead,
+  .ln-prose tbody {
+    display: table;
+    width: 100%;
+    min-width: 560px;
+    table-layout: fixed;
+    border-collapse: collapse;
+  }
+}
+
+/* ── 图片 / 分隔线 ────────────────────────────────────── */
+.ln-prose img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 1.9em auto;
+  border-radius: var(--ln-radius-sm);
+}
+
+.ln-prose figure {
+  margin: 1.9em 0;
+}
+
+.ln-prose figure > img {
+  margin: 0 auto;
+}
+
+.ln-prose figcaption {
+  margin-top: var(--ln-space-2);
+  color: hsl(var(--ln-color-muted));
+  font-size: var(--ln-text-meta);
+  line-height: 1.6;
+  text-align: center;
+}
+
+.ln-prose hr {
+  margin: 3em 0;
+  border: 0;
+  border-top: var(--ln-border-width) solid hsl(var(--ln-color-line));
+}
+
+/* ── 链接：站内只靠钴蓝与字重，站外追加 ↗ ─────────────── */
+.ln-prose a {
+  text-decoration: none;
+}
+
+.ln-prose :is(p, li, td, blockquote) a {
+  border-radius: var(--ln-radius-sm);
+  color: hsl(var(--ln-color-accent));
+  font-weight: var(--ln-weight-medium);
+  text-decoration: none;
+}
+
+.ln-prose :is(p, li, td, blockquote) a:hover {
+  background-color: hsl(var(--ln-color-hover));
+}
+
+.ln-prose :is(p, li, td, blockquote) a:active {
+  background-color: hsl(var(--ln-color-press));
+}
+
+.ln-prose :is(p, li, td, blockquote) a[href^='http']:not(.anchor)::after {
+  display: inline-block;
+  margin-inline-start: 0.1em;
+  color: hsl(var(--ln-color-muted));
+  font-size: 0.85em;
+  content: '↗';
+}
+
+/* ── 来源行：构建期钩子，保持次级灰 ───────────────────── */
+.ln-prose .ln-source-line {
+  margin-top: var(--ln-space-6);
+  color: hsl(var(--ln-color-muted));
+  font-size: var(--ln-text-meta);
+  line-height: 1.65;
+}
+
+.ln-prose .ln-source-line a {
+  color: inherit;
+  font-weight: var(--ln-weight-medium);
+}
+
+.ln-prose .ln-source-line a:hover {
+  color: hsl(var(--ln-color-ink));
+}
+
+/* ── 页面（非文章）标题，条款页沿用 ──────────────────── */
+.ln-page-title {
+  margin: 0;
+  color: hsl(var(--ln-color-ink));
+  font-size: var(--ln-text-page-title);
+  font-weight: var(--ln-weight-strong);
+  line-height: var(--ln-leading-title);
+  letter-spacing: 0;
+}

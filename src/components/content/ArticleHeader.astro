@@ -1,0 +1,28 @@
+---
+import type { InferEntrySchema } from 'astro:content'
+import { formatDate } from '@/lib/format-date'
+interface Props { data: InferEntrySchema<'blog'> }
+const { data: { title, description, draft, publishDate, updatedDate, tags, language } } = Astro.props
+const published = formatDate(publishDate)
+---
+
+{draft && <p class='ln-article-draft'>草稿</p>}
+<h1 class='ln-article-title'>{title}</h1>
+{description && <p class='ln-article-lead'>{description}</p>}
+<p class='ln-article-meta'>
+  <time class='ln-article-date' datetime={published}>{published}</time>
+  {updatedDate && <span class='ln-article-updated'>更新于 {formatDate(updatedDate)}</span>}
+  {
+    tags.length > 0 && (
+      <span class='ln-article-tags'>
+        {tags.map((tag) => (
+          <a class='ln-article-tag' href={`/tags/${tag}`}>
+            {tag}
+          </a>
+        ))}
+      </span>
+    )
+  }
+  {language && <span class='ln-article-language'>{language}</span>}
+  <slot name='views' />
+</p>

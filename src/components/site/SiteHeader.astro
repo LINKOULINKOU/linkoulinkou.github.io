@@ -1,0 +1,79 @@
+---
+import Wordmark from '@/components/site/Wordmark.astro'
+import config from '@/site-config'
+const menu = [{ title: '首页', link: '/' }, ...(config.header.menu ?? [])]
+const path = Astro.url.pathname
+const isCurrent = (link: string) => link === '/' ? path === '/' : path === link || path.startsWith(`${link}/`)
+---
+
+<header class='ln-site-header'>
+  <div class='ln-brand'>
+    <Wordmark />
+    <span class='ln-brand__caption'>PERSONAL LOGBOOK<span>观察、构建与记录</span></span>
+  </div>
+  <nav class='ln-nav' aria-label='主导航'>
+    {menu.map((item) => <a href={item.link} data-astro-prefetch aria-current={isCurrent(item.link) ? 'page' : undefined}>{item.title}</a>)}
+  </nav>
+  <a class='ln-search-trigger' id='ln-search-trigger' href='/search' data-astro-prefetch>
+    <svg width='16' height='16' viewBox='0 0 24 24' fill='none' aria-hidden='true'>
+      <circle cx='10.5' cy='10.5' r='6.5' stroke='currentColor' stroke-width='1.5'></circle>
+      <path d='M15.5 15.5l5 5' stroke='currentColor' stroke-width='1.5'></path>
+    </svg>
+    搜索
+  </a>
+</header>
+
+<style>
+  .ln-site-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ln-space-3) var(--ln-space-6);
+    padding-block: var(--ln-header-pad);
+  }
+  .ln-brand { display: flex; align-items: center; gap: var(--ln-space-8); }
+  .ln-brand__caption {
+    display: grid;
+    gap: var(--ln-space-1);
+    color: hsl(var(--ln-color-muted));
+    font: var(--ln-text-micro) / var(--ln-leading-meta) var(--ln-font-mono);
+    letter-spacing: var(--ln-tracking-label);
+  }
+  .ln-brand__caption span { font-family: var(--ln-font-sans); letter-spacing: 0.08em; }
+  .ln-nav { display: flex; flex-wrap: wrap; gap: var(--ln-space-2); margin-inline-start: auto; }
+  .ln-nav a, .ln-search-trigger {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ln-space-2);
+    min-height: var(--ln-hit-min);
+    padding-inline: var(--ln-space-3);
+    color: hsl(var(--ln-color-muted));
+    font-size: var(--ln-text-nav);
+    line-height: var(--ln-leading-nav);
+    text-decoration: none;
+  }
+  .ln-nav a::after {
+    content: '';
+    position: absolute;
+    inset-inline-start: calc(50% - var(--ln-space-1) / 2);
+    bottom: 0;
+    width: var(--ln-space-1);
+    height: var(--ln-space-1);
+    background: hsl(var(--ln-color-accent));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--ln-motion-base) var(--ln-ease-standard);
+  }
+  .ln-nav a[aria-current='page'] { color: hsl(var(--ln-color-ink)); font-weight: var(--ln-weight-strong); }
+  .ln-nav a[aria-current='page']::after { transform: scaleX(1); }
+  .ln-nav a:hover { color: hsl(var(--ln-color-accent)); }
+  .ln-nav a:hover::after { transform: scaleX(1); }
+  .ln-search-trigger { padding-inline-end: 0; padding-inline-start: var(--ln-space-6); }
+  .ln-search-trigger:hover { color: hsl(var(--ln-color-accent)); }
+  @media (max-width: 64em) { .ln-brand__caption { display: none; } }
+  @media (max-width: 40em) {
+    .ln-nav { order: 3; width: 100%; margin-inline-start: 0; gap: 0; }
+    .ln-search-trigger { margin-inline-start: auto; }
+  }
+</style>

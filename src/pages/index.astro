@@ -1,118 +1,144 @@
 ---
-import { Image } from 'astro:assets'
 import { getCollection } from 'astro:content'
+import { formatDate } from '@/lib/format-date'
 
-import { PostPreview } from 'astro-pure/components/pages'
-import { getBlogCollection, sortMDByDate } from 'astro-pure/server'
-import { Button, FormattedDate } from 'astro-pure/user'
-import PageLayout from '@/layouts/BaseLayout.astro'
-import Section from '@/components/home/Section.astro'
-import config from '@/site-config'
+import BaseLayout from '@/layouts/BaseLayout.astro'
+import EntryLink from '@/components/content/EntryLink.astro'
+import SectionHead from '@/components/site/SectionHead.astro'
 
-const MAX_POSTS = 10
-const allPosts = await getBlogCollection()
-const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS)
-
-// 最近更新：tracking 集合（工作区同步生成物，见 SITE-INDEX §8）最新几条
-const MAX_UPDATES = 5
-const trackingEntries = await getCollection('tracking')
-const recentUpdates = [...trackingEntries]
-  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
-  .slice(0, MAX_UPDATES)
-
-const imagePath = config.logo.src
-const images = import.meta.glob<{ default: ImageMetadata }>(
-  '/src/assets/*.{jpeg,jpg,png,gif,avif,webp}'
-)
-if (!images[imagePath])
-  throw new Error(
-    `"${imagePath}" does not exist in glob: "src/assets/*.{jpeg,jpg,png,gif,avif,webp}"`
-  )
+const tracking = await getCollection('tracking')
+const byDate = (a: (typeof tracking)[number], b: (typeof tracking)[number]) =>
+  b.data.date.valueOf() - a.data.date.valueOf()
+const updates = tracking
+  .filter(({ data }) => data.kind !== 'release')
+  .sort(byDate)
+  .slice(0, 6)
+const topics = tracking
+  .filter(({ data }) => data.kind === 'topic')
+  .sort(byDate)
+  .slice(0, 3)
+const notes = (await getCollection('blog'))
+  .filter(({ data }) => data.tags.includes('随笔') && !data.draft)
+  .sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf())
+  .slice(0, 3)
+const kindLabel = { hotnews: '热点', topic: '专题', release: '发布线' } as const
 ---
 
-<PageLayout meta={{ title: 'Home' }} highlightColor='#659EB9'>
-  <main class='flex w-full flex-col items-center'>
-    <section class='animate mb-10 flex flex-col items-center gap-y-7' id='content-header'>
-      <Image
-        src={images[imagePath]()}
-        alt={config.logo.alt || 'Profile'}
-        class='h-28 w-auto rounded-full border p-1'
-        loading='eager'
-        fetchpriority='high'
-      />
-
-      <h1 class='text-3xl font-medium'>{config.author}</h1>
+<BaseLayout meta={{ title: '首页' }}>
+  <h1 class='sr-only'>LINKOULINKOU</h1>
+  <div class='ln-home'>
+    <section aria-label='最近更新'>
+      <SectionHead title='最近更新' href='/tracking' label='全部追踪' accent='bird' />
+      {updates[0] && <div class='ln-home__lead ln-pixel-frame ln-pixel-frame--accent'>
+        <span class='ln-home__motif ln-pixel-motif' aria-hidden='true'></span>
+        <EntryLink
+          href={`/tracking/${updates[0].id}`}
+          title={updates[0].data.title}
+          date={formatDate(updates[0].data.date)}
+          kind={kindLabel[updates[0].data.kind]}
+          feature
+        />
+      </div>}
+      {updates.length > 1 && <div class='ln-home__history'>
+        <p class='ln-home__history-label'>此前记录 <span aria-hidden='true'>/ EARLIER</span></p>
+        <ol class='ln-home__list'>
+          {updates.slice(1).map((entry) => (
+            <li>
+              <EntryLink
+                href={`/tracking/${entry.id}`}
+                title={entry.data.title}
+                date={formatDate(entry.data.date)}
+                kind={kindLabel[entry.data.kind]}
+                variant='timeline'
+              />
+            </li>
+          ))}
+        </ol>
+      </div>}
+      {updates.length === 0 && <p class='ln-home__empty'>暂无记录。</p>}
     </section>
+    <aside class='ln-home__side' aria-label='专题与随笔'>
+      <section class='ln-home__topics ln-pixel-frame'>
+        <SectionHead title='专题精选' href='/tracking#topics' label='全部专题' index='02' english='IN FOCUS' accent='maple' />
+        <ul class='ln-home__list'>
+          {
+            topics.map((entry, i) => (
+              <li>
+                <EntryLink
+                  href={`/tracking/${entry.id}`}
+                  title={entry.data.title}
+                  date={formatDate(entry.data.date)}
+                  index={String(i + 1).padStart(2, '0')}
+                  variant='stacked'
+                />
+              </li>
+            ))
+          }
+        </ul>
+        {topics.length === 0 && <p class='ln-home__empty'>暂无专题。</p>}
+      </section>
+      <section>
+        <SectionHead title='随笔' href='/blog' label='全部文章' index='03' english='PERSONAL WRITING' accent='swallow' />
+        <ul class='ln-home__list'>
+          {
+            notes.map((post) => (
+              <li>
+                <EntryLink
+                  href={`/blog/${post.id}`}
+                  title={post.data.title}
+                  date={formatDate(post.data.publishDate)}
+                  variant='stacked'
+                />
+              </li>
+            ))
+          }
+        </ul>
+        {notes.length === 0 && <p class='ln-home__empty'>暂无文章。</p>}
+      </section>
+    </aside>
+  </div>
+</BaseLayout>
 
-    <div id='content' class='animate flex flex-col gap-y-10 md:w-4/5 lg:w-5/6'>
-      {
-        allPostsByDate.length > 0 && (
-          <Section title='Blog'>
-            <ul class='flex flex-col gap-y-1.5 sm:gap-y-2'>
-              {allPostsByDate.map((p) => (
-                <li class='flex flex-col gap-x-2 sm:flex-row'>
-                  <PostPreview post={p} />
-                </li>
-              ))}
-            </ul>
-            <Button title='More posts' class='w-fit self-end' href='/blog' variant='ahead' />
-          </Section>
-        )
-      }
-
-      {
-        recentUpdates.length > 0 && (
-          <Section title='Tracking'>
-            <ul class='flex flex-col gap-y-1.5 sm:gap-y-2'>
-              {recentUpdates.map((e) => (
-                <li class='flex flex-col gap-x-2 sm:flex-row'>
-                  <a
-                    class='group relative block w-full rounded-2xl border bg-background px-5 py-2.5 transition-colors ease-in-out hover:bg-muted hover:text-primary'
-                    href={`/tracking/${e.id}`}
-                    data-astro-prefetch
-                  >
-                    <div class='relative flex flex-col gap-1 sm:flex-row sm:items-center'>
-                      <FormattedDate class='min-w-[95px] text-xs' date={e.data.date} />
-                      <div class='flex justify-between flex-grow'>
-                        <div class='flex items-center gap-2'>
-                          <span class='shrink-0 rounded border px-1.5 text-xs leading-5 text-muted-foreground'>
-                            {{ hotnews: '热点', topic: '专题', release: '发布线' }[e.data.kind]}
-                          </span>
-                          <span>{e.data.title}</span>
-                        </div>
-                        <svg
-                          xmlns='http://www.w3.org/2000/svg'
-                          width='16'
-                          height='16'
-                          viewBox='0 0 24 24'
-                          fill='none'
-                          stroke-width='2.5'
-                          stroke-linecap='round'
-                          stroke-linejoin='round'
-                          class='my-1 stroke-muted-foreground group-hover:stroke-primary'
-                        >
-                          <line
-                            x1='5'
-                            y1='12'
-                            x2='19'
-                            y2='12'
-                            class='translate-x-4 scale-x-0 transition-all duration-300 ease-in-out group-hover:translate-x-1 group-hover:scale-x-100'
-                          />
-                          <polyline
-                            points='12 5 19 12 12 19'
-                            class='translate-x-0 transition-all duration-300 ease-in-out group-hover:translate-x-1'
-                          />
-                        </svg>
-                      </div>
-                    </div>
-                  </a>
-                </li>
-              ))}
-            </ul>
-            <Button title='More tracking' class='w-fit self-end' href='/tracking' variant='ahead' />
-          </Section>
-        )
-      }
-    </div>
-  </main>
-</PageLayout>
+<style>
+  .ln-home {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--ln-space-12);
+    align-items: start;
+  }
+  .ln-home__side {
+    display: grid;
+    gap: var(--ln-space-8);
+    min-width: 0;
+  }
+  .ln-home__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .ln-home__lead { margin: var(--ln-space-3) 0 var(--ln-space-8); padding: var(--ln-space-6) var(--ln-space-8); }
+  .ln-home__lead :global(.ln-entry--feature) { padding: 0; }
+  .ln-home__lead :global(.ln-entry__title) { line-height: var(--ln-leading-ui); max-width: 30em; }
+  .ln-home__motif { position: absolute; inset-block-start: var(--ln-space-6); inset-inline-end: var(--ln-space-6); }
+  .ln-home__history { padding-top: var(--ln-space-2); }
+  .ln-home__history :global(.ln-entry--timeline) { padding-block: var(--ln-space-5); }
+  .ln-home__side > section { padding: var(--ln-space-6); }
+  .ln-home__side :global(.ln-entry--stacked) { padding-block: var(--ln-space-5); }
+  .ln-home__side :global(.ln-entry__title) { line-height: var(--ln-leading-lead); }
+  .ln-home__side :global(.ln-section-head) { gap: var(--ln-space-2); }
+  .ln-home__side :global(.ln-section-head__eyebrow) { letter-spacing: 0.075em; }
+  .ln-home__side :global(.ln-section-head__enter) { font-size: var(--ln-text-micro); gap: var(--ln-space-1); }
+  .ln-home__history-label { display: flex; align-items: center; gap: var(--ln-space-3); margin: 0 0 var(--ln-space-2); color: hsl(var(--ln-color-muted)); font-size: var(--ln-text-meta); }
+  .ln-home__history-label > span { font: var(--ln-text-micro) / var(--ln-leading-meta) var(--ln-font-mono); letter-spacing: var(--ln-tracking-label); }
+  .ln-home__empty {
+    margin-top: var(--ln-space-4);
+    color: hsl(var(--ln-color-muted));
+    font-size: var(--ln-text-meta);
+  }
+  @media (min-width: 72em) {
+    .ln-home {
+      grid-template-columns: minmax(0, 1fr) var(--ln-width-sidebar);
+      gap: var(--ln-home-gap);
+    }
+  }
+</style>

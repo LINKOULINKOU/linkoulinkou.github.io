@@ -1,5 +1,174 @@
 ---
-import PageLayout from '@/layouts/CommonPage.astro'
+import PageLayout from '@/layouts/PageLayout.astro'
+import JumpLink from '@/components/navigation/JumpLink.astro'
+
+const meta = {
+  title: '关于',
+  description: '站点说明与内容索引'
+}
+
+const sections = [
+  { href: '/tracking', title: '前沿追踪', note: '按天记录，专题会更长一些。' },
+  { href: '/blog', title: '文章', note: '技术笔记和日常记录。' },
+  { href: '/projects', title: '项目', note: 'GitHub 上的项目与提交。' },
+  { href: '/links', title: '友链', note: '互换友链的站点。' }
+]
 ---
 
-<PageLayout title='About' comment />
+<PageLayout {meta} title='关于'>
+  <div class='ln-about-body'>
+    <section class='ln-about' aria-labelledby='about-site'>
+      <h2 id='about-site'>这个站点</h2>
+      <div class='ln-about__content ln-about__intro ln-pixel-frame'>
+        <p class='ln-about__statement'>
+          前沿追踪按天记录 Agent 和工具链的变化，值得展开的会写成专题。文章是零散的技术笔记。
+        </p>
+        <p class='ln-about__source'>研究内容保留原始日期和来源链接。</p>
+      </div>
+    </section>
+
+    <section class='ln-about' aria-labelledby='about-content'>
+      <h2 id='about-content'>内容</h2>
+      <ul class='ln-about__index'>
+        {
+          sections.map((item) => (
+            <li>
+              <a href={item.href}>
+                <span class='ln-about__title'>{item.title}</span>
+                <span class='ln-about__note'>{item.note}</span>
+                <span class='ln-about__arrow' aria-hidden='true'>↗</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section class='ln-about' aria-labelledby='about-contact'>
+      <h2 id='about-contact'>联系</h2>
+      <div class='ln-about__content'>
+        <ul class='ln-about__links'>
+          <li><JumpLink href='https://github.com/LINKOULINKOU' label='GitHub' direction='external' external /></li>
+          <li><JumpLink href='/rss.xml' label='文章 RSS' /></li>
+        </ul>
+        <p class='ln-about__todo'>个人简介待补充。</p>
+      </div>
+    </section>
+  </div>
+</PageLayout>
+
+<style>
+  .ln-about-body {
+    display: grid;
+  }
+  .ln-about {
+    display: grid;
+    gap: var(--ln-space-6);
+    padding-block: var(--ln-space-8);
+  }
+  .ln-about:first-child {
+    padding-top: var(--ln-space-6);
+  }
+  .ln-about h2 {
+    margin: 0;
+    font-size: var(--ln-text-sm);
+    font-weight: var(--ln-weight-medium);
+    line-height: var(--ln-leading-ui);
+  }
+  .ln-about__content,
+  .ln-about__index {
+    min-width: 0;
+  }
+  .ln-about p {
+    max-width: var(--ln-measure);
+    margin: 0;
+    color: hsl(var(--ln-color-body));
+    line-height: var(--ln-leading-reading);
+  }
+  .ln-about .ln-about__statement {
+    font-size: var(--ln-text-section);
+    line-height: var(--ln-leading-reading);
+  }
+  .ln-about .ln-about__source {
+    margin-top: var(--ln-space-4);
+    color: hsl(var(--ln-color-muted));
+    font-size: var(--ln-text-sm);
+  }
+  .ln-about__index,
+  .ln-about__links {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .ln-about__index a {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--ln-space-1) var(--ln-space-4);
+    min-height: var(--ln-hit-min);
+    padding-block: var(--ln-space-4);
+    color: inherit;
+    text-decoration: none;
+    transition: color var(--ln-motion-hover) var(--ln-ease-standard);
+  }
+  .ln-about__index li:first-child a {
+    padding-top: 0;
+  }
+  .ln-about__index a:hover .ln-about__title,
+  .ln-about__index a:focus-visible .ln-about__title {
+    color: hsl(var(--ln-color-accent));
+  }
+  .ln-about__title {
+    font-size: var(--ln-text-list-title);
+    font-weight: var(--ln-weight-medium);
+  }
+  .ln-about__note {
+    grid-column: 1;
+    color: hsl(var(--ln-color-muted));
+    font-size: var(--ln-text-sm);
+    line-height: var(--ln-leading-ui);
+  }
+  .ln-about__arrow {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    align-self: center;
+    color: hsl(var(--ln-color-accent));
+  }
+  .ln-about__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ln-space-2) var(--ln-space-6);
+  }
+  .ln-about .ln-about__todo {
+    margin-top: var(--ln-space-4);
+    color: hsl(var(--ln-color-muted));
+    font-size: var(--ln-text-sm);
+  }
+  @media (min-width: 40em) {
+    .ln-about {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
+      gap: var(--ln-space-8);
+      padding-block: var(--ln-space-10);
+    }
+    .ln-about:first-child > h2 {
+      padding-top: var(--ln-space-6);
+    }
+    .ln-about__intro {
+      max-width: var(--ln-measure);
+      margin-inline-start: calc(-1 * var(--ln-space-6));
+      padding: var(--ln-space-6);
+    }
+    .ln-about__index a {
+      grid-template-columns: 136px minmax(0, 1fr) auto;
+      align-items: baseline;
+      gap: var(--ln-space-6);
+      padding-block: var(--ln-space-5);
+    }
+    .ln-about__note {
+      grid-column: 2;
+    }
+    .ln-about__arrow {
+      grid-column: 3;
+      grid-row: 1;
+    }
+  }
+</style>

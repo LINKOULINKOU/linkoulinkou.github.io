@@ -1,84 +1,179 @@
 ---
 import type { CollectionEntry } from 'astro:content'
+import EntryLink from '@/components/content/EntryLink.astro'
+import { formatDate } from '@/lib/format-date'
 
 interface Props {
   entries: CollectionEntry<'tracking'>[]
   emptyMessage: string
   unit?: string
+  kind?: string
 }
-
-const { entries, emptyMessage, unit = '篇' } = Astro.props
-
-// 各分类共用月折叠列表，按日期倒序，默认只展开最新月。
-const groups: { key: string; label: string; items: typeof entries }[] = []
+const { entries, emptyMessage, unit = '篇', kind = 'hotnews' } = Astro.props
+const MAX_PER_MONTH = 20
+const months = new Map<string, typeof entries>()
 for (const entry of [...entries].sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())) {
-  const key = entry.id.slice(0, 7)
-  let group = groups.find((item) => item.key === key)
-  if (!group) {
-    const [year, month] = key.split('-')
-    group = { key, label: `${year} 年 ${Number(month)} 月`, items: [] }
-    groups.push(group)
-  }
-  group.items.push(entry)
+  const month = entry.id.slice(0, 7)
+  const group = months.get(month) ?? []
+  group.push(entry)
+  months.set(month, group)
 }
 ---
 
-{
-  entries.length ? (
-    <div class='mt-4'>
-      {groups.map((group, i) => (
-        <details class='month-fold mt-6 first:mt-0' open={i === 0}>
-          <summary class='flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary'>
-            <svg
-              xmlns='http://www.w3.org/2000/svg'
-              viewBox='0 0 24 24'
-              fill='none'
-              stroke='currentColor'
-              stroke-width='2'
-              stroke-linecap='round'
-              stroke-linejoin='round'
-              class='chev size-4 shrink-0'
-            >
-              <polyline points='9 6 15 12 9 18' />
-            </svg>
-            <span>{group.label}</span>
-            <span class='text-xs opacity-70'>
-              · {group.items.length} {unit}
-            </span>
-          </summary>
-          <ul class='ms-[22px] mt-2 flex flex-col gap-y-1.5'>
-            {group.items.map((entry) => (
-              <li class='flex flex-col gap-x-3 sm:flex-row'>
-                <span class='shrink-0 text-sm leading-6 text-muted-foreground'>
-                  {entry.id.slice(5, 10)}
-                </span>
-                <a class='leading-6 hover:text-primary' href={`/tracking/${entry.id}`}>
-                  {entry.data.title}
-                </a>
+{entries.length ? (
+  <div class='ln-month-list'>
+    {[...months].map(([month, items], index) => (
+      <details class='ln-month-list__group' id={`m-${kind}-${month}`} open={index === 0}>
+        <summary>
+          <span class='ln-month-list__label'>
+            <span class='ln-month-list__year'>{month.slice(0, 4)} 年</span>
+            <span class='ln-month-list__month'>{month.slice(5)}<span>月</span></span>
+          </span>
+          <span class='ln-month-list__count'>{`${items.length} ${unit}`}</span>
+          <svg class='ln-month-list__chevron' viewBox='0 0 24 24' aria-hidden='true'><path d='m9 6 6 6-6 6' /></svg>
+        </summary>
+        <div class='ln-month-list__body ln-pixel-frame'>
+          <ol class='ln-month-list__items'>
+            {items.slice(0, MAX_PER_MONTH).map((entry) => (
+              <li>
+                <EntryLink
+                  href={`/tracking/${entry.id}`}
+                  title={entry.data.title}
+                  date={formatDate(entry.data.date)}
+                  variant='short'
+                />
               </li>
             ))}
-          </ul>
-        </details>
-      ))}
-    </div>
-  ) : (
-    <p class='mt-4 text-muted-foreground'>{emptyMessage}</p>
-  )
-}
+          </ol>
+          {items.length > MAX_PER_MONTH && (
+            <details class='ln-month-list__more'>
+              <summary>展开其余 {items.length - MAX_PER_MONTH} 条 <span aria-hidden='true'>＋</span></summary>
+              <ol class='ln-month-list__items' start={MAX_PER_MONTH + 1}>
+                {items.slice(MAX_PER_MONTH).map((entry) => (
+                  <li>
+                    <EntryLink
+                      href={`/tracking/${entry.id}`}
+                      title={entry.data.title}
+                      date={formatDate(entry.data.date)}
+                      variant='short'
+                    />
+                  </li>
+                ))}
+              </ol>
+            </details>
+          )}
+        </div>
+      </details>
+    ))}
+  </div>
+) : <p class='ln-month-list__empty'>{emptyMessage}</p>}
 
 <style>
-  .month-fold > summary {
+  .ln-month-list__group {
+    scroll-margin-top: var(--ln-space-6);
+  }
+  .ln-month-list__group + .ln-month-list__group {
+    margin-top: var(--ln-space-12);
+  }
+  .ln-month-list summary {
+    display: flex;
+    align-items: center;
+    gap: var(--ln-space-4);
+    min-height: var(--ln-hit-min);
+    padding-block: var(--ln-space-3);
+    color: hsl(var(--ln-color-ink));
     list-style: none;
     cursor: pointer;
-    user-select: none;
+    transition: color var(--ln-motion-hover) var(--ln-ease-standard);
   }
-  .month-fold > summary::-webkit-details-marker {
+  .ln-month-list summary::-webkit-details-marker {
     display: none;
   }
-  .month-fold > summary .chev {
-    transition: transform 0.2s ease;
+  .ln-month-list summary:hover,
+  .ln-month-list summary:focus-visible {
+    color: hsl(var(--ln-color-accent));
   }
-  .month-fold[open] > summary .chev {
+  .ln-month-list__label {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--ln-space-4);
+    font-variant-numeric: tabular-nums;
+  }
+  .ln-month-list__year {
+    color: hsl(var(--ln-color-muted));
+    font-family: var(--ln-font-mono);
+    font-size: var(--ln-text-meta);
+  }
+  .ln-month-list__month {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--ln-space-2);
+    font-family: var(--ln-font-mono);
+    font-size: var(--ln-text-feature);
+    font-weight: var(--ln-weight-normal);
+    line-height: var(--ln-leading-title);
+  }
+  .ln-month-list__month > span {
+    font-family: var(--ln-font-sans);
+    font-size: var(--ln-text-sm);
+  }
+  .ln-month-list__count {
+    margin-inline-start: auto;
+    color: hsl(var(--ln-color-muted));
+    font-size: var(--ln-text-meta);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .ln-month-list__chevron {
+    flex: none;
+    width: var(--ln-icon-size);
+    height: var(--ln-icon-size);
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+  }
+  .ln-month-list__group[open] > summary .ln-month-list__chevron {
     transform: rotate(90deg);
+  }
+  .ln-month-list__items {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .ln-month-list__more {
+    margin-top: var(--ln-space-3);
+  }
+  .ln-month-list__more > summary {
+    justify-content: space-between;
+    padding-block: var(--ln-space-4);
+    color: hsl(var(--ln-color-accent));
+    font-size: var(--ln-text-meta);
+    font-weight: var(--ln-weight-medium);
+  }
+  .ln-month-list__empty {
+    margin: 0;
+    padding-block: var(--ln-space-8);
+    color: hsl(var(--ln-color-muted));
+    font-size: var(--ln-text-sm);
+  }
+  @media (min-width: 40em) {
+    .ln-month-list__group > summary {
+      padding-inline: var(--ln-space-6);
+    }
+    .ln-month-list__label {
+      display: grid;
+      grid-template-columns: var(--ln-entry-short-meta-width) auto;
+      column-gap: var(--ln-space-6);
+    }
+    .ln-month-list__body {
+      padding: var(--ln-space-2) var(--ln-space-6) var(--ln-space-4);
+    }
+    .ln-month-list__body :global(.ln-entry--short) {
+      padding-block: var(--ln-space-3);
+    }
+    .ln-month-list__more > summary {
+      padding-inline-start: calc(var(--ln-entry-short-meta-width) + var(--ln-space-6));
+    }
   }
 </style>

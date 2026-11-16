@@ -1,52 +1,113 @@
 ---
-import { PostPreview } from 'astro-pure/components/pages'
+import type { CollectionEntry } from 'astro:content'
+import { formatDate } from '@/lib/format-date'
+
 import { getBlogCollection, groupCollectionsByYear, sortMDByDate } from 'astro-pure/server'
-import { Button } from 'astro-pure/user'
-import PageLayout from '@/layouts/BaseLayout.astro'
+import PageLayout from '@/layouts/PageLayout.astro'
+import EntryLink from '@/components/content/EntryLink.astro'
+import JumpLink from '@/components/navigation/JumpLink.astro'
 
 export const prerender = true
-
-const allPosts = await getBlogCollection()
-const allPostsByDate = sortMDByDate(allPosts)
-const allPostsByYear = groupCollectionsByYear(allPostsByDate)
-
-const meta = {
-  description: 'A list of all the years of creating my posts',
-  title: 'Archives'
-}
+const posts = sortMDByDate(await getBlogCollection()) as CollectionEntry<'blog'>[]
+const allPostsByYear = groupCollectionsByYear(posts) as [number, CollectionEntry<'blog'>[]][]
+const meta = { description: '全部文章按年归档', title: '文章归档' }
 ---
 
-<PageLayout {meta}>
-  <Button title='Back' href='/blog' variant='back' />
-
-  <main class='mt-6 lg:mt-10'>
-    <div id='content-header' class='animate'>
-      <h1 class='mb-6 text-3xl font-medium'>Archives</h1>
-    </div>
-
-    {allPosts.length === 0 && <p>No posts yet.</p>}
-
-    <section id='content' class='animate' aria-label='Blog post list'>
-      {
-        allPostsByYear.map(([year, posts]) => (
-          <div class='relative mt-20'>
-            <h2
-              class='absolute -start-6 -top-16 z-0 text-9xl font-bold text-transparent opacity-12 dark:opacity-25'
-              style='-webkit-text-stroke-width:2px;-webkit-text-stroke-color:hsl(var(--foreground)/var(--un-text-opacity))'
-            >
-              <samp>{year}</samp>
+<PageLayout {meta} title='文章归档'>
+  <Fragment slot='tools'>
+    <span>共 {posts.length} 篇</span>
+    <JumpLink href='/blog' label='文章列表' />
+    <JumpLink href='/tracking' label='前往追踪' />
+  </Fragment>
+  <div class='ln-archive'>
+    {
+      allPostsByYear.length === 0 ? (
+        <p class='ln-archive__empty'>暂无文章。</p>
+      ) : (
+        allPostsByYear.map(([year, yearPosts]) => (
+          <section class='ln-year' aria-labelledby={`year-${year}`}>
+            <h2 id={`year-${year}`}>
+              <span class='ln-year__number'>{year}</span>
+              <span class='ln-year__count'>{yearPosts.length} 篇文章</span>
             </h2>
-            <p class='px-5 text-muted-foreground'>
-              {posts.length} post{posts.length > 1 && 's'}
-            </p>
-            <ul class='flex flex-col text-start'>
-              {posts.map((p) => (
-                <PostPreview post={p} class='border-0 bg-transparent py-2' />
+            <ul>
+              {yearPosts.map((post) => (
+                <li>
+                  <EntryLink
+                    href={`/blog/${post.id}`}
+                    title={post.data.title}
+                    date={formatDate(post.data.publishDate)}
+                    variant='short'
+                  />
+                </li>
               ))}
             </ul>
-          </div>
+          </section>
         ))
-      }
-    </section>
-  </main>
+      )
+    }
+  </div>
 </PageLayout>
+
+<style>
+  .ln-archive {
+    display: grid;
+    row-gap: var(--ln-space-4);
+  }
+  .ln-year {
+    display: grid;
+    gap: var(--ln-space-6);
+    padding-block: var(--ln-space-8);
+  }
+  .ln-year h2 {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--ln-space-3);
+    margin: 0;
+  }
+  .ln-year__number {
+    color: hsl(var(--ln-color-ink));
+    font-family: var(--ln-font-mono);
+    font-size: var(--ln-text-base);
+    font-weight: var(--ln-weight-normal);
+    line-height: var(--ln-leading-title);
+    font-variant-numeric: tabular-nums;
+  }
+  .ln-year__count {
+    color: hsl(var(--ln-color-muted));
+    font-size: var(--ln-text-meta);
+    font-weight: var(--ln-weight-normal);
+  }
+  .ln-year ul {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .ln-archive__empty {
+    padding-block: var(--ln-space-6);
+    color: hsl(var(--ln-color-muted));
+  }
+  @media (min-width: 40em) {
+    .ln-year {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
+      gap: var(--ln-space-8);
+      padding-block: var(--ln-space-10);
+    }
+    .ln-year h2 {
+      display: grid;
+      align-content: start;
+      gap: var(--ln-space-3);
+    }
+    .ln-year__number {
+      line-height: var(--ln-leading-ui);
+    }
+    .ln-year li:first-child :global(.ln-entry) {
+      padding-top: 0;
+    }
+    .ln-year li:last-child :global(.ln-entry) {
+      padding-bottom: 0;
+    }
+  }
+</style>

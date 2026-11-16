@@ -1,0 +1,60 @@
+---
+import config from '@/site-config'
+
+const year = new Date().getFullYear()
+---
+
+<footer class='ln-site-footer'>
+  <nav aria-label='页脚链接'>
+    <a href='/archives'>归档</a>
+    <a href='/tags'>标签</a>
+    <a href='/links'>友链</a>
+    <a href='/terms'>站点说明</a>
+    <a href='https://github.com/LINKOULINKOU'>GitHub</a>
+    <a href='/rss.xml'>文章 RSS</a>
+  </nav>
+  <p>© {year} {config.author}</p>
+</footer>
+
+<style>
+  .ln-site-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ln-space-4);
+    margin-top: 0;
+    padding-top: var(--ln-space-4);
+    color: hsl(var(--ln-color-muted));
+    font-size: var(--ln-text-meta);
+  }
+  .ln-site-footer p {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ln-space-3);
+    margin: 0;
+    font-family: var(--ln-font-mono);
+    font-size: var(--ln-text-micro);
+  }
+  .ln-site-footer p::before {
+    content: '';
+    width: var(--ln-space-1);
+    height: var(--ln-space-1);
+    background: hsl(var(--ln-color-accent));
+  }
+  .ln-site-footer nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ln-space-4);
+  }
+  .ln-site-footer a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--ln-hit-min);
+    color: inherit;
+    text-decoration: none;
+  }
+  .ln-site-footer a:hover {
+    color: hsl(var(--ln-color-accent));
+  }
+</style>

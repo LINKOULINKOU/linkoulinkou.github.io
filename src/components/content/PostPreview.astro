@@ -1,0 +1,41 @@
+---
+import type { CollectionEntry } from 'astro:content'
+import { formatDate } from '@/lib/format-date'
+interface Props { post: CollectionEntry<'blog'>; lead?: boolean }
+const { post, lead = false } = Astro.props
+const { title, description, publishDate, tags } = post.data
+---
+
+<article class:list={['ln-post', { 'ln-post--lead': lead, 'ln-pixel-frame': lead }]}>
+  <a class='ln-post__link' href={`/blog/${post.id}`} data-astro-prefetch>
+    <div class='ln-post__body'>
+      <p class='ln-post__meta'>
+        <time datetime={formatDate(publishDate)}>{formatDate(publishDate)}</time>
+        {tags.length > 0 && <span>{tags.join(' / ')}</span>}
+      </p>
+      <h2 class='ln-post__title'>{title}</h2>
+      {description && <p class='ln-post__description'>{description}</p>}
+      <span class='ln-post__read'>阅读文章 <span aria-hidden='true'>↗</span></span>
+    </div>
+    <span class='ln-post__graphic ln-pixel-motif' aria-hidden='true'></span>
+  </a>
+</article>
+
+<style>
+  .ln-post + .ln-post { margin-top: var(--ln-space-6); }
+  .ln-post__link { position: relative; display: flex; align-items: center; justify-content: space-between; gap: var(--ln-space-8); padding: var(--ln-space-8) 0; color: hsl(var(--ln-color-body)); text-decoration: none; overflow-wrap: anywhere; }
+  .ln-post__body { min-width: 0; max-width: var(--ln-measure); }
+  .ln-post__meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ln-space-4); margin: 0; color: hsl(var(--ln-color-muted)); font: var(--ln-text-meta) / var(--ln-leading-meta) var(--ln-font-mono); font-variant-numeric: tabular-nums; }
+  .ln-post__meta > span { font-family: var(--ln-font-sans); }
+  .ln-post__title { margin: var(--ln-space-3) 0 0; color: hsl(var(--ln-color-ink)); font-size: var(--ln-text-feature); font-weight: var(--ln-weight-strong); line-height: var(--ln-leading-section); transition: color var(--ln-motion-hover); }
+  .ln-post__description { max-width: var(--ln-measure); margin: var(--ln-space-3) 0 0; color: hsl(var(--ln-color-muted)); font-size: var(--ln-text-base); line-height: var(--ln-leading-reading); }
+  .ln-post__read { display: inline-flex; align-items: center; gap: var(--ln-space-3); margin-top: var(--ln-space-6); color: hsl(var(--ln-color-accent)); font-size: var(--ln-text-meta); }
+  .ln-post__read > span { transition: transform var(--ln-motion-base) var(--ln-ease-standard); }
+  .ln-post__link:hover .ln-post__title { color: hsl(var(--ln-color-accent)); }
+  .ln-post__link:hover .ln-post__read > span { transform: translate(2px, -2px); }
+  .ln-post--lead .ln-post__link { padding: var(--ln-space-10) var(--ln-space-8); }
+  .ln-post--lead .ln-post__title { font-size: var(--ln-text-page-title); letter-spacing: -0.04em; }
+  .ln-post__graphic { display: none; }
+  .ln-post--lead .ln-post__graphic { display: block; margin-inline: var(--ln-space-8); align-self: flex-start; }
+  @media (max-width: 40em) { .ln-post--lead .ln-post__graphic { display: none; } }
+</style>

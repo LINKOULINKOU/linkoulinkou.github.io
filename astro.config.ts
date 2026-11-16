@@ -1,11 +1,12 @@
 import { rehypeHeadingIds } from '@astrojs/markdown-remark'
 import AstroPureIntegration from 'astro-pure'
-import { defineConfig, fontProviders, svgoOptimizer } from 'astro/config'
+import { defineConfig, svgoOptimizer } from 'astro/config'
 import rehypeKatex from 'rehype-katex'
 import remarkMath from 'remark-math'
 
 // Local integrations
 import rehypeAutolinkHeadings from './src/plugins/rehype-auto-link-headings.ts'
+import rehypeSourceLines from './src/plugins/rehype-source-lines.ts'
 // Shiki
 import {
   addCollapse,
@@ -48,45 +49,31 @@ export default defineConfig({
     // domains: ['ghchart.rshah.org'],
     remotePatterns: [{ protocol: 'https' }]
   },
-  // Enable font preloading and optimization
-  // https://docs.astro.build/en/guides/fonts/
-  fonts: [
-    {
-      provider: fontProviders.fontshare(),
-      name: 'Satoshi',
-      cssVariable: '--font-satoshi',
-      // Default included:
-      // weights: [400],
-      // styles: ["normal", "italics"],
-      // subsets: ["cyrillic-ext", "cyrillic", "greek-ext", "greek", "vietnamese", "latin-ext", "latin"],
-      // fallbacks: ["sans-serif"],
-      styles: ['normal', 'italic'],
-      weights: [400, 500],
-      subsets: ['latin']
-    }
-  ],
+  // 字体：刻意不加载网络字体。全站用系统现代中文无衬线（见 tokens.css --ln-font-sans），
+  // 跨平台固定形状只要求马赛克字标。此处留空数组，避免旧 Satoshi 覆盖 token。
+  fonts: [],
 
   // [Markdown]
   markdown: {
     remarkPlugins: [remarkMath],
     rehypePlugins: [
+      rehypeSourceLines,
       [rehypeKatex, {}],
       rehypeHeadingIds,
       [
         rehypeAutolinkHeadings,
         {
           behavior: 'append',
-          properties: { className: ['anchor'] },
+          // 锚点 # 不进搜索索引，也不进可访问名称
+        properties: { className: ['anchor'], ariaHidden: 'true', 'data-pagefind-ignore': 'true' },
           content: { type: 'text', value: '#' }
         }
       ]
     ],
     // https://docs.astro.build/en/guides/syntax-highlighting/
     shikiConfig: {
-      themes: {
-        light: 'github-light',
-        dark: 'github-dark'
-      },
+      // 只有浅色：单一 github-light 主题，不再生成 --shiki-dark 变量
+      theme: 'github-light',
       transformers: [
         // Two copies of @shikijs/types (one under node_modules
         // and another nested under @astrojs/markdown-remark → shiki).

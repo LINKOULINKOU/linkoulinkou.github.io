@@ -1,0 +1,94 @@
+---
+import SearchPanel from '@/components/search/SearchPanel.astro'
+---
+
+<div class='ln-search-region' id='ln-search-region' hidden>
+  <div class='ln-search-region__inner'>
+    <SearchPanel lazy />
+    <button class='ln-search-close' id='ln-search-close' type='button' aria-label='关闭搜索'>
+      <svg width='16' height='16' viewBox='0 0 24 24' fill='none' aria-hidden='true'>
+        <path d='M6 6l12 12M18 6L6 18' stroke='currentColor' stroke-width='2' stroke-linecap='round'
+        ></path>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<script>
+  // custom element 就绪前保留 /search 原生锚点；页头只管理自己的开关。
+  customElements.whenDefined('site-search').then(() => {
+    const trigger = document.getElementById('ln-search-trigger')
+    const region = document.getElementById('ln-search-region')
+    const panel = region?.querySelector('site-search')
+    if (!trigger || !region || !panel) return
+
+    trigger.setAttribute('role', 'button')
+    trigger.setAttribute('aria-expanded', 'false')
+    trigger.setAttribute('aria-controls', region.id)
+    const setOpen = (open: boolean) => {
+      region.hidden = !open
+      trigger.setAttribute('aria-expanded', String(open))
+      // 关闭同步撤销未完成的焦点请求，加载结束后不会重新抢焦点。
+      panel.dispatchEvent(new Event(open ? 'ln-search-focus' : 'ln-search-cancel-focus'))
+      if (!open) trigger.focus()
+    }
+    trigger.addEventListener('click', (event) => {
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+      event.preventDefault()
+      setOpen(region.hidden === true)
+    })
+    trigger.addEventListener('keydown', (event) => {
+      if (event.key !== ' ') return
+      event.preventDefault()
+      setOpen(region.hidden === true)
+    })
+    document.getElementById('ln-search-close')?.addEventListener('click', () => setOpen(false))
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape' || region.hidden) return
+      event.preventDefault()
+      setOpen(false)
+    })
+  })
+</script>
+
+<style>
+  .ln-search-region {
+    padding-block: var(--ln-space-4) var(--ln-space-8);
+    border-bottom: var(--ln-border-width) solid hsl(var(--ln-color-line));
+  }
+  .ln-search-region__inner {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--ln-space-4);
+    max-width: calc(var(--ln-width-search) + var(--ln-hit-min) + var(--ln-space-4));
+  }
+  .ln-search-region__inner > :global(site-search) {
+    flex: 1;
+    min-width: 0;
+  }
+  .ln-search-region :global(.ln-search-panel__mount) {
+    max-height: min(var(--ln-search-viewport-height), var(--ln-search-max-height));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .ln-search-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: var(--ln-hit-min);
+    height: var(--ln-hit-min);
+    border: var(--ln-border-width) solid hsl(var(--ln-color-control));
+    border-radius: var(--ln-radius-sm);
+    background: hsl(var(--ln-color-bg));
+    color: hsl(var(--ln-color-body));
+    cursor: pointer;
+  }
+  .ln-search-close:hover {
+    background: hsl(var(--ln-color-hover));
+    border-color: hsl(var(--ln-color-accent));
+  }
+  .ln-search-close:active {
+    background: hsl(var(--ln-color-press));
+  }
+</style>

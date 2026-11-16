@@ -1,0 +1,141 @@
+---
+/** 无 JS 时保留两个真实锚点；增强后支持键盘分类切换与月份深链。 */
+interface Props {
+  hotnewsCount?: number
+  topicsCount?: number
+}
+const { hotnewsCount, topicsCount } = Astro.props
+---
+
+<nav class='ln-tracking-tabs' aria-label='追踪分类'>
+  <span class='ln-tracking-tabs__thumb' aria-hidden='true'></span>
+  <a href='#hotnews' data-kind='hotnews'>热点{hotnewsCount !== undefined && <span class='ln-tracking-tabs__count'>{hotnewsCount}<span class='ln-tracking-tabs__unit'> 期</span></span>}</a>
+  <a href='#topics' data-kind='topics'>专题{topicsCount !== undefined && <span class='ln-tracking-tabs__count'>{topicsCount}<span class='ln-tracking-tabs__unit'> 篇</span></span>}</a>
+</nav>
+
+<script>
+  const nav = document.querySelector<HTMLElement>('.ln-tracking-tabs')
+  const kinds = ['hotnews', 'topics'] as const
+  type Kind = (typeof kinds)[number]
+  const panels = kinds.map((kind) => document.getElementById(kind))
+  if (nav && panels.every(Boolean)) {
+    const tabs = kinds.map((kind) => nav.querySelector<HTMLAnchorElement>(`[data-kind='${kind}']`)!)
+    nav.setAttribute('role', 'tablist')
+    const fromHash = (): Kind =>
+      location.hash === '#topics' || location.hash.startsWith('#m-topics-') ? 'topics' : 'hotnews'
+    const placeThumb = (kind: Kind) => {
+      const tab = tabs[kinds.indexOf(kind)]
+      nav.style.setProperty('--thumb-x', `${tab.offsetLeft}px`)
+      nav.style.setProperty('--thumb-w', `${tab.offsetWidth}px`)
+    }
+    const select = (kind: Kind, navigate = false) => {
+      kinds.forEach((key, i) => {
+        const current = key === kind
+        tabs[i].setAttribute('aria-selected', String(current))
+        tabs[i].tabIndex = current ? 0 : -1
+        panels[i]!.hidden = !current
+      })
+      nav.dataset.active = kind
+      placeThumb(kind)
+      if (navigate && location.hash !== `#${kind}`) history.pushState(null, '', `#${kind}`)
+    }
+    tabs.forEach((tab, index) => {
+      tab.id = `tab-${kinds[index]}`
+      tab.setAttribute('role', 'tab')
+      tab.setAttribute('aria-controls', kinds[index])
+      panels[index]!.setAttribute('role', 'tabpanel')
+      panels[index]!.setAttribute('aria-labelledby', tab.id)
+      tab.addEventListener('click', (event) => {
+        if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+        event.preventDefault()
+        select(kinds[index], true)
+      })
+      tab.addEventListener('keydown', (event) => {
+        if (event.key === ' ') {
+          event.preventDefault()
+          select(kinds[index], true)
+          return
+        }
+        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return
+        event.preventDefault()
+        const next = event.key === 'Home' ? 0 : event.key === 'End' ? 1 : 1 - index
+        select(kinds[next], true)
+        tabs[next].focus()
+      })
+    })
+    const restore = () => {
+      select(fromHash())
+      if (!location.hash.startsWith('#m-')) return
+      const month = document.getElementById(location.hash.slice(1))
+      if (month instanceof HTMLDetailsElement) {
+        month.open = true
+        month.scrollIntoView({ block: 'start' })
+      }
+    }
+    window.addEventListener('resize', () => placeThumb(fromHash()))
+    restore()
+    window.addEventListener('hashchange', restore)
+    window.addEventListener('popstate', restore)
+  }
+</script>
+
+<style>
+  .ln-tracking-tabs {
+    position: relative;
+    display: inline-flex;
+    gap: var(--ln-space-8);
+    max-width: 100%;
+    border-bottom: var(--ln-border-width) solid hsl(var(--ln-color-line));
+  }
+  .ln-tracking-tabs__thumb {
+    position: absolute;
+    inset-block-end: calc(var(--ln-border-width) * -1);
+    inset-inline-start: 0;
+    width: var(--thumb-w, 0);
+    height: var(--ln-state-bar);
+    background: hsl(var(--ln-color-accent));
+    opacity: 0;
+    transform: translateX(var(--thumb-x, 0));
+    transition:
+      transform var(--ln-motion-base) var(--ln-ease-standard),
+      width var(--ln-motion-base) var(--ln-ease-standard),
+      opacity var(--ln-motion-fast) var(--ln-ease-standard);
+  }
+  .ln-tracking-tabs[data-active] .ln-tracking-tabs__thumb {
+    opacity: 1;
+  }
+  .ln-tracking-tabs a {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--ln-space-3);
+    min-height: var(--ln-hit-min);
+    padding-block: var(--ln-space-3);
+    white-space: nowrap;
+    color: hsl(var(--ln-color-muted));
+    font-size: var(--ln-text-nav);
+    text-decoration: none;
+    transition: color var(--ln-motion-hover) var(--ln-ease-standard);
+  }
+  .ln-tracking-tabs a[aria-selected='true'] {
+    color: hsl(var(--ln-color-ink));
+    font-weight: var(--ln-weight-strong);
+  }
+  .ln-tracking-tabs a:hover {
+    color: hsl(var(--ln-color-accent));
+  }
+  .ln-tracking-tabs__count {
+    color: hsl(var(--ln-color-muted));
+    font-family: var(--ln-font-mono);
+    font-size: var(--ln-text-meta);
+    font-weight: var(--ln-weight-normal);
+    font-variant-numeric: tabular-nums;
+  }
+  .ln-tracking-tabs__unit {
+    font-family: var(--ln-font-sans);
+  }
+  .ln-tracking-tabs a[aria-selected='true'] .ln-tracking-tabs__count {
+    color: hsl(var(--ln-color-accent));
+  }
+</style>

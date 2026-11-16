@@ -1,0 +1,49 @@
+/* 全站页内跳转：像素箭头 + 13px 文字。箭头造型见 PixelArrow.astro。 */
+.ln-jump {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ln-space-2);
+  min-height: var(--ln-hit-min);
+  color: hsl(var(--ln-color-muted));
+  font-size: var(--ln-text-meta);
+  font-weight: var(--ln-weight-normal);
+  line-height: var(--ln-leading-meta);
+  text-decoration: none;
+}
+
+/* 16px = 16 格 × 1px 模块；迷你像素箭头按这个网格绘制，不做非整数缩放。 */
+.ln-jump__mark {
+  display: block;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  transition:
+    color var(--ln-motion-hover) var(--ln-ease-standard),
+    transform var(--ln-motion-hover) var(--ln-ease-standard);
+}
+
+.ln-jump__label {
+  transition: color var(--ln-motion-hover) var(--ln-ease-standard);
+}
+
+.ln-jump:hover .ln-jump__label,
+.ln-jump:focus-visible .ln-jump__label {
+  color: hsl(var(--ln-color-ink));
+}
+
+.ln-jump:hover,
+.ln-jump:focus-visible {
+  color: hsl(var(--ln-color-accent));
+}
+
+.ln-jump--back:hover .ln-jump__mark,
+.ln-jump--back:focus-visible .ln-jump__mark {
+  transform: translateX(-2px);
+}
+
+.ln-jump--forward:hover .ln-jump__mark,
+.ln-jump--forward:focus-visible .ln-jump__mark,
+.ln-jump--external:hover .ln-jump__mark,
+.ln-jump--external:focus-visible .ln-jump__mark {
+  transform: translateX(2px);
+}

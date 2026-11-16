@@ -1,0 +1,38 @@
+---
+import JumpLink from '@/components/navigation/JumpLink.astro'
+
+interface Props {
+  prevUrl?: { text: string; url: string }
+  nextUrl?: { text: string; url: string }
+}
+
+const { prevUrl, nextUrl } = Astro.props
+---
+
+{
+  (prevUrl || nextUrl) && (
+    <nav class='ln-pagination' aria-label='分页'>
+      {prevUrl ? (
+        <JumpLink href={prevUrl.url} label={prevUrl.text} direction='back' rel='prev' />
+      ) : (
+        <span />
+      )}
+      {nextUrl ? (
+        <JumpLink href={nextUrl.url} label={nextUrl.text} rel='next' />
+      ) : (
+        <span />
+      )}
+    </nav>
+  )
+}
+
+<style>
+  .ln-pagination {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--ln-space-4);
+    margin-top: var(--ln-space-8);
+    padding-top: var(--ln-space-4);
+    border-top: var(--ln-border-width) solid hsl(var(--ln-color-line));
+  }
+</style>

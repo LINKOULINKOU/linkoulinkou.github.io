@@ -1,0 +1,108 @@
+---
+import type { CollectionEntry } from 'astro:content'
+import ArrowIcon from '@/components/navigation/PixelArrow.astro'
+
+/** 前一篇 / 后一篇：细线箭头 + 标题，不用描边按钮。 */
+interface Props {
+  id: string
+  posts: CollectionEntry<'blog'>[]
+}
+
+const { id, posts } = Astro.props
+const index = posts.findIndex((post) => post.id === id)
+const prev = index > 0 ? posts[index - 1] : undefined
+const next = index >= 0 && index < posts.length - 1 ? posts[index + 1] : undefined
+---
+
+{
+  (prev || next) && (
+    <nav class='ln-post-nav' aria-label='上一篇与下一篇'>
+      {prev ? (
+        <a class='ln-post-nav__item' href={`/blog/${prev.id}`} rel='prev' data-astro-prefetch>
+          <span class='ln-post-nav__dir'>
+            <ArrowIcon class='ln-post-nav__mark' direction='back' />
+            <span>上一篇</span>
+          </span>
+          <span class='ln-post-nav__title'>{prev.data.title}</span>
+        </a>
+      ) : (
+        <span />
+      )}
+      {next ? (
+        <a class='ln-post-nav__item ln-post-nav__item--next' href={`/blog/${next.id}`} rel='next' data-astro-prefetch>
+          <span class='ln-post-nav__dir'>
+            <span>下一篇</span>
+            <ArrowIcon />
+          </span>
+          <span class='ln-post-nav__title'>{next.data.title}</span>
+        </a>
+      ) : (
+        <span />
+      )}
+    </nav>
+  )
+}
+
+<style>
+  .ln-post-nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--ln-space-6);
+    margin-top: var(--ln-space-8);
+    padding-top: var(--ln-space-4);
+    border-top: var(--ln-border-width) solid hsl(var(--ln-color-line));
+  }
+  .ln-post-nav__item {
+    display: block;
+    padding-block: var(--ln-space-2);
+    color: hsl(var(--ln-color-body));
+    text-decoration: none;
+  }
+  .ln-post-nav__item:hover .ln-post-nav__title {
+    color: hsl(var(--ln-color-ink));
+  }
+  .ln-post-nav__item:hover .ln-post-nav__mark {
+    color: hsl(var(--ln-color-accent));
+  }
+  .ln-post-nav__item--next {
+    text-align: right;
+  }
+  .ln-post-nav__dir {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ln-space-2);
+    color: hsl(var(--ln-color-muted));
+    font-size: var(--ln-text-meta);
+  }
+  .ln-post-nav__mark {
+    color: hsl(var(--ln-color-muted));
+    transition:
+      color var(--ln-motion-hover) var(--ln-ease-standard),
+      transform var(--ln-motion-hover) var(--ln-ease-standard);
+  }
+  .ln-post-nav__item:hover .ln-post-nav__mark {
+    transform: translateX(-2px);
+  }
+  .ln-post-nav__item--next:hover .ln-post-nav__mark {
+    transform: translateX(2px);
+  }
+  .ln-post-nav__title {
+    display: block;
+    margin-top: var(--ln-space-1);
+    font-size: var(--ln-text-base);
+    font-weight: var(--ln-weight-medium);
+    line-height: var(--ln-leading-ui);
+    transition: color var(--ln-motion-hover) var(--ln-ease-standard);
+  }
+  @media (max-width: 640px) {
+    .ln-post-nav {
+      grid-template-columns: 1fr;
+    }
+    .ln-post-nav__item--next {
+      text-align: left;
+    }
+    .ln-post-nav__item--next .ln-post-nav__dir {
+      flex-direction: row-reverse;
+    }
+  }
+</style>
