@@ -21,7 +21,7 @@ export const SPRITES: Sprite[] = [
   { kind: 'bird', frames: 6, frameW: 24, height: 18, cycle: 'calc(var(--ln-motion-frame-bird) * 6)', delay: '0s' },
   { kind: 'maple', frames: 5, frameW: 21, height: 26, cycle: 'calc(var(--ln-motion-frame-maple) * 5)', delay: '-0.55s' },
   { kind: 'swallow', frames: 6, frameW: 30, height: 21, cycle: 'calc(var(--ln-motion-frame-swallow) * 6)', delay: '-1.15s' },
-  { kind: 'fish', frames: 10, frameW: 32, height: 32, cycle: 'calc(var(--ln-motion-frame-fish) * 10)', delay: '0s' }
+  { kind: 'fish', frames: 10, frameW: 26, height: 26, cycle: 'calc(var(--ln-motion-frame-fish) * 10)', delay: '0s' }
 ]
 
 /** 逐帧 keyframes：末帧回到第 0 帧，形成无缝循环。 */
@@ -36,9 +36,8 @@ function keyframes({ kind, frames, frameW }: Sprite): string {
 
 /** 每件的尺寸、周期、相位与背景图集尺寸。 */
 function variant({ kind, frames, frameW, height, cycle, delay }: Sprite): string {
-  // 鱼标与标题之间由容器的 gap 控制，不再额外加边距
-  const margin =
-    kind === 'fish' ? '' : kind === 'maple' ? ';margin-right:var(--ln-space-2)' : ';margin-left:var(--ln-space-2)'
+  // 与主页三件一致：默认在左侧留 8px，枫叶在右侧留 8px
+  const margin = kind === 'maple' ? ';margin-right:var(--ln-space-2)' : ';margin-left:var(--ln-space-2)'
   return `.ln-accent--${kind}{--ln-anim:ln-${kind};--ln-cycle:${cycle};--ln-delay:${delay};width:${frameW}px;height:${height}px;background-size:${frameW * frames}px ${height}px${margin}}`
 }
 
