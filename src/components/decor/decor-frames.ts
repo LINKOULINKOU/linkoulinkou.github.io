@@ -36,8 +36,10 @@ function keyframes({ kind, frames, frameW }: Sprite): string {
 
 /** 每件的尺寸、周期、相位与背景图集尺寸。 */
 function variant({ kind, frames, frameW, height, cycle, delay }: Sprite): string {
-  const margin = kind === 'maple' ? 'margin-right' : 'margin-left'
-  return `.ln-accent--${kind}{--ln-anim:ln-${kind};--ln-cycle:${cycle};--ln-delay:${delay};width:${frameW}px;height:${height}px;background-size:${frameW * frames}px ${height}px;${margin}:var(--ln-space-2)}`
+  // 鱼标与标题之间由容器的 gap 控制，不再额外加边距
+  const margin =
+    kind === 'fish' ? '' : kind === 'maple' ? ';margin-right:var(--ln-space-2)' : ';margin-left:var(--ln-space-2)'
+  return `.ln-accent--${kind}{--ln-anim:ln-${kind};--ln-cycle:${cycle};--ln-delay:${delay};width:${frameW}px;height:${height}px;background-size:${frameW * frames}px ${height}px${margin}}`
 }
 
 export const DECOR_CSS = [...SPRITES.map(keyframes), ...SPRITES.map(variant)].join('\n')
