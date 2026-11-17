@@ -55,43 +55,8 @@ const meta = {
 </PageLayout>
 
 <style is:global>
-  /* 「调研说明」折叠框（HTML 由 scripts/sync-tracking.mjs 生成） */
-  .tracking-note {
-    margin: var(--ln-space-6) 0;
-    padding-inline: var(--ln-space-4);
-    border: var(--ln-border-width) solid hsl(var(--ln-color-line));
-    font-size: var(--ln-text-sm);
-    line-height: var(--ln-leading-ui);
-    color: hsl(var(--ln-color-muted));
-  }
-
-  .tracking-note summary {
-    display: flex;
-    align-items: center;
-    /* 整块 44px 可点：之前只有 20px 的文字行响应 */
-    min-height: var(--ln-hit-min);
-    cursor: pointer;
-    user-select: none;
-    font-weight: var(--ln-weight-medium);
-    color: hsl(var(--ln-color-ink));
-  }
-
-  .tracking-note summary:hover {
-    color: hsl(var(--ln-color-accent));
-  }
-
-  .tracking-note blockquote {
-    margin: var(--ln-space-3) 0 var(--ln-space-1);
-    padding: 0;
-    border: none;
-    box-shadow: none;
-  }
-
-  .tracking-note blockquote::after {
-    content: none;
-  }
-
-  /* 研究与手写文章一样需要收尾：返回入口 + 署名 */
+  /* 「调研说明」折叠框（HTML 由 scripts/sync-tracking.mjs 生成）在 article.css 里；
+     这里只保留研究页自己的收尾：返回入口 + 署名。 */
   .ln-detail-foot {
     display: flex;
     flex-wrap: wrap;

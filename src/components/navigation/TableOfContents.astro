@@ -9,30 +9,46 @@ interface Props {
 
 const { headings, compact = false } = Astro.props
 const items = headings.filter((heading) => heading.depth === 2 || heading.depth === 3)
+const total = String(items.length).padStart(2, '0')
 ---
 
 {
   items.length > 0 && (
     <nav class:list={['ln-toc', { 'ln-toc--compact': compact }]} aria-label='目录'>
-      <p class='ln-toc__title'>目录</p>
-      <ol class='ln-toc__list'>
-        {items.map((heading) => (
-          <li class:list={['ln-toc__item', `ln-toc__item--h${heading.depth}`]}>
-            <a href={`#${heading.slug}`} data-toc-link={heading.slug}>
-              {heading.text}
-            </a>
-          </li>
-        ))}
-      </ol>
+      <div class='ln-toc__head'>
+        <p class='ln-toc__title'>目录</p>
+        <p class='ln-toc__count' data-toc-count aria-hidden='true'>
+          {total} 节
+        </p>
+      </div>
+      <div class='ln-toc__rail'>
+        <ol class='ln-toc__list'>
+          {items.map((heading) => (
+            <li class:list={['ln-toc__item', `ln-toc__item--h${heading.depth}`]}>
+              <a href={`#${heading.slug}`} data-toc-link={heading.slug}>
+                {heading.text}
+              </a>
+            </li>
+          ))}
+        </ol>
+        <span class='ln-toc__progress' data-toc-progress aria-hidden='true' />
+      </div>
     </nav>
   )
 }
 
 <script>
-  // scrollspy：把当前阅读位置的标题标出来；窄屏与桌面两份目录共用同一状态。
+  // scrollspy + 阅读位置：桌面目录的进度线与计数、窄屏目录的当前项共用同一状态。
   const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('[data-toc-link]'))
 
   if (links.length) {
+    const rail = document.querySelector<HTMLElement>('.ln-reading__toc')
+    const railLinks = rail ? Array.from(rail.querySelectorAll<HTMLAnchorElement>('[data-toc-link]')) : []
+    const count = rail?.querySelector<HTMLElement>('[data-toc-count]') ?? null
+    const progress = rail?.querySelector<HTMLElement>('[data-toc-progress]') ?? null
+    const pad = (value: number) => String(value).padStart(2, '0')
+    const totalLabel = `${pad(railLinks.length)} 节`
+
     const targets = new Map<string, HTMLElement>()
     for (const link of links) {
       const id = link.dataset.tocLink
@@ -45,23 +61,55 @@ const items = headings.filter((heading) => heading.depth === 2 || heading.depth 
     const setCurrent = (slug: string | null) => {
       if (slug === lastSlug) return
       lastSlug = slug
+
       for (const link of links) {
         if (slug && link.dataset.tocLink === slug) link.setAttribute('aria-current', 'true')
         else link.removeAttribute('aria-current')
       }
 
+      const index = slug ? railLinks.findIndex((link) => link.dataset.tocLink === slug) : -1
+      if (count) count.textContent = index >= 0 ? `${pad(index + 1)} / ${pad(railLinks.length)}` : totalLabel
+
+      if (progress) {
+        const item = index >= 0 ? railLinks[index].closest<HTMLElement>('li') : null
+        progress.style.height = item ? `${item.offsetTop + item.offsetHeight / 2}px` : '0px'
+        if (item) progress.dataset.active = 'true'
+        else delete progress.dataset.active
+      }
+
       // 长目录：把当前项带回目录轨的可见区，但不滚动正文
-      const railLink = links.find(
-        (link) => link.dataset.tocLink === slug && link.closest('.ln-reading__toc')
-      )
-      const rail = railLink?.closest<HTMLElement>('.ln-reading__toc')
+      const railLink = index >= 0 ? railLinks[index] : null
       if (!railLink || !rail || !rail.offsetParent) return
       const rect = railLink.getBoundingClientRect()
       const railRect = rail.getBoundingClientRect()
-      const top = railRect.top + 44
+      const top = railRect.top + 40
       const bottom = railRect.bottom - 8
       if (rect.top < top) rail.scrollTop += rect.top - top
       else if (rect.bottom > bottom) rail.scrollTop += rect.bottom - bottom
+    }
+
+    // 目录项是链接：点击后按阅读偏移落点、写入地址栏，并把键盘焦点交给目标标题。
+    // 原生锚点会贴到视口顶端，且窄屏 details 收起后落点会偏，所以这里接管点击。
+    for (const link of links) {
+      link.addEventListener('click', (event) => {
+        if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+        const id = link.dataset.tocLink
+        const target = id ? document.getElementById(id) : null
+        if (!id || !target) return
+        event.preventDefault()
+
+        const mobile = link.closest('details.ln-toc-mobile')
+        if (mobile instanceof HTMLDetailsElement) mobile.open = false
+
+        const top = target.getBoundingClientRect().top + window.scrollY - 40
+        const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        window.scrollTo({ top: Math.max(0, top), behavior: reduce ? 'auto' : 'smooth' })
+        history.pushState(null, '', link.getAttribute('href'))
+        setCurrent(id)
+
+        if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1')
+        target.focus({ preventScroll: true })
+      })
     }
 
     const headings = [...targets.entries()]
@@ -88,5 +136,6 @@ const items = headings.filter((heading) => heading.depth === 2 || heading.depth 
     window.addEventListener('scroll', requestUpdate, { passive: true })
     window.addEventListener('resize', requestUpdate)
     window.addEventListener('hashchange', requestUpdate)
+    window.addEventListener('popstate', requestUpdate)
   }
 </script>

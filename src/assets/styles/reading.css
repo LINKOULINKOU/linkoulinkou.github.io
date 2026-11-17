@@ -90,19 +90,41 @@
   padding-bottom: var(--ln-space-4);
 }
 
-/* ── 目录：细线书脊 + 当前章节的 2px 钴蓝条 ───────────── */
+/* ── 目录：细线书脊 + 进度线 + 整行当前位置 ───────────── */
 .ln-toc {
+  position: relative;
   padding-left: var(--ln-space-4);
   border-left: var(--ln-border-width) solid hsl(var(--ln-color-line));
 }
 
+.ln-toc__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--ln-space-2);
+  margin-bottom: var(--ln-space-2);
+}
+
 .ln-toc__title {
-  margin: 0 0 var(--ln-space-3);
+  margin: 0;
   color: hsl(var(--ln-color-muted));
   font-size: 0.75rem;
   font-weight: var(--ln-weight-medium);
   letter-spacing: 0.12em;
   line-height: 1.4;
+}
+
+.ln-toc__count {
+  margin: 0;
+  color: hsl(var(--ln-color-faint));
+  font: var(--ln-text-micro) / 1.4 var(--ln-font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.ln-toc__rail {
+  position: relative;
 }
 
 .ln-toc__list {
@@ -112,51 +134,117 @@
 }
 
 .ln-toc__item + .ln-toc__item {
-  margin-top: 2px;
+  margin-top: 1px;
 }
 
 .ln-toc__item a {
   position: relative;
   display: block;
-  padding: 5px 0;
+  margin-inline: calc(var(--ln-space-2) * -1);
+  padding: 5px 24px 5px var(--ln-space-2);
+  border-radius: var(--ln-radius-sm);
   color: hsl(var(--ln-color-muted));
   font-size: var(--ln-text-meta);
   line-height: 1.55;
   text-decoration: none;
   overflow-wrap: anywhere;
-  transition: color var(--ln-motion-hover) var(--ln-ease-standard);
+  transition:
+    color var(--ln-motion-hover) var(--ln-ease-standard),
+    background-color var(--ln-motion-hover) var(--ln-ease-standard);
+}
+
+/* 右侧小箭头是静态的「可跳转」提示；不用下划线，避免目录显得杂乱 */
+.ln-toc__item a::after {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-end: 8px;
+  color: hsl(var(--ln-color-muted));
+  font-size: 12px;
+  line-height: 1;
+  content: '→' / '';
+  opacity: 0.7;
+  transform: translateY(-50%) translateX(-2px);
+  transition:
+    color var(--ln-motion-hover) var(--ln-ease-standard),
+    opacity var(--ln-motion-hover) var(--ln-ease-standard),
+    transform var(--ln-motion-hover) var(--ln-ease-standard);
 }
 
 .ln-toc__item--h2 > a {
   color: hsl(var(--ln-color-body));
+  font-size: 0.78125rem;
   font-weight: var(--ln-weight-medium);
 }
 
 .ln-toc__item--h3 > a {
-  padding-left: var(--ln-space-4);
-  font-size: 0.78125rem;
+  padding-inline-start: calc(var(--ln-space-2) + var(--ln-space-4));
+  font-size: 0.75rem;
 }
 
 .ln-toc__item a:hover {
-  color: hsl(var(--ln-color-ink));
+  color: hsl(var(--ln-color-accent));
+  background-color: hsl(var(--ln-color-hover));
 }
 
-/* 当前项只换字色并压一条钴蓝短线，不改变字重与盒宽 */
+.ln-toc__item a:hover::after,
+.ln-toc__item a:focus-visible::after {
+  color: hsl(var(--ln-color-accent));
+  opacity: 1;
+  transform: translateY(-50%);
+}
+
+.ln-toc__item a:focus-visible {
+  outline-offset: -2px;
+  color: hsl(var(--ln-color-accent));
+  background-color: hsl(var(--ln-color-hover));
+}
+
+/* 当前位置：整行着色 + 书脊上的进度线，不再只靠一条细杠 */
 .ln-toc__item a[aria-current='true'] {
   color: hsl(var(--ln-color-ink));
+  background-color: hsl(var(--ln-color-accent) / 0.07);
+  font-weight: var(--ln-weight-strong);
 }
 
-.ln-toc__item a[aria-current='true']::before {
+.ln-toc__item a[aria-current='true']::after {
+  opacity: 0;
+}
+
+.ln-toc__item--h3 > a[aria-current='true'] {
+  font-weight: var(--ln-weight-medium);
+}
+
+.ln-toc__progress {
   position: absolute;
-  inset-block: 5px;
-  inset-inline-start: calc(var(--ln-space-4) * -1 - 1px);
+  inset-block-start: 0;
+  inset-inline-start: calc(var(--ln-space-4) * -1 - var(--ln-border-width));
+  z-index: 1;
   width: var(--ln-state-bar);
+  height: 0;
+  background-color: hsl(var(--ln-color-accent));
+  pointer-events: none;
+  transition: height var(--ln-motion-base) var(--ln-ease-standard);
+}
+
+/* 进度线末端的小方块：当前项在书脊上的位置；没有当前项时不显示 */
+.ln-toc__progress::after {
+  position: absolute;
+  inset-block-end: -3px;
+  inset-inline-start: 0;
+  display: none;
+  width: 6px;
+  height: 6px;
   background-color: hsl(var(--ln-color-accent));
   content: '';
 }
 
+.ln-toc__progress[data-active='true']::after {
+  display: block;
+}
+
 /* 窄屏 details 里的紧凑目录：命中区放大到 44px */
-.ln-toc--compact .ln-toc__title {
+.ln-toc--compact .ln-toc__head,
+.ln-toc--compact .ln-toc__progress {
   display: none;
 }
 
@@ -171,16 +259,18 @@
   min-height: 40px;
 }
 
-.ln-toc--compact .ln-toc__item a[aria-current='true']::before {
-  inset-block: 8px;
-}
-
 /* ── 桌面：目录成为正文右侧的独立轨道 ─────────────────── */
 .ln-reading__toc {
   display: none;
 }
 
 @media (min-width: 72em) {
+  .ln-main:has(.ln-reading__toc) .ln-back-row {
+    max-width: calc(
+      var(--ln-reading-measure) + var(--ln-reading-gutter) + var(--ln-reading-rail)
+    );
+  }
+
   .ln-reading__body {
     grid-template-columns: var(--ln-reading-measure) var(--ln-reading-rail);
     column-gap: var(--ln-reading-gutter);
@@ -204,10 +294,12 @@
     scrollbar-width: thin;
   }
 
-  .ln-reading__toc .ln-toc__title {
+  /* 目录滚动时保留标题与当前位置计数 */
+  .ln-reading__toc .ln-toc__head {
     position: sticky;
     top: 0;
-    z-index: 1;
+    z-index: 2;
+    margin-bottom: 0;
     padding-block: 2px var(--ln-space-2);
     background-color: hsl(var(--ln-color-bg));
   }
