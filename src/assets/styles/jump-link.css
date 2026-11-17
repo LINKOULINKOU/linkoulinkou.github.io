@@ -1,4 +1,4 @@
-/* 全站页内跳转：像素箭头 + 13px 文字。箭头造型见 PixelArrow.astro。 */
+/* 全站页内跳转：像素箭头 + 小号文字（--ln-text-meta）。箭头造型见 PixelArrow.astro。 */
 .ln-jump {
   display: inline-flex;
   align-items: center;

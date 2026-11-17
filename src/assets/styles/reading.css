@@ -1,14 +1,7 @@
 /* 阅读页框架：正文栏、目录轨、窄屏折叠目录与文末落款。
-   文章头与正文排版在 article.css。 */
+   版心与目录轨来自 tokens 的 --ln-reading-*；字号与局部间距仍在本文件。 */
 
 .ln-reading {
-  /* 阅读尺度：660px ÷ 17px ≈ 38.8 个全角字，落在 30–40 字的舒适区间 */
-  --reading-measure: 660px;
-  --reading-rail: 216px;
-  --reading-gutter: 64px;
-  --reading-inset: 20px;
-  --reading-body-gap: 28px;
-
   display: block;
   min-width: 0;
 }
@@ -17,7 +10,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  max-width: var(--reading-measure, 704px);
+  max-width: var(--ln-reading-measure);
   margin-bottom: var(--ln-space-8);
 }
 .ln-reading-label {
@@ -31,7 +24,7 @@
 }
 
 .ln-reading__head {
-  max-width: var(--reading-measure);
+  max-width: var(--ln-reading-measure);
   padding-bottom: var(--ln-space-4);
 }
 
@@ -42,18 +35,18 @@
 /* 标题块之后：先给正文一个明确的开始，再让目录从正文首行起排 */
 .ln-reading__body {
   display: grid;
-  grid-template-columns: minmax(0, var(--reading-measure));
+  grid-template-columns: minmax(0, var(--ln-reading-measure));
   align-items: start;
 }
 
 .ln-prose {
   min-width: 0;
-  margin-top: var(--reading-body-gap);
+  margin-top: var(--ln-reading-body-gap);
 }
 
 /* ── 窄屏：原生 details 目录，正文前、可键盘操作 ───────── */
 .ln-toc-mobile {
-  max-width: var(--reading-measure);
+  max-width: var(--ln-reading-measure);
   margin: var(--ln-space-4) 0 0;
   border-bottom: var(--ln-border-width) solid hsl(var(--ln-color-line));
   font-size: var(--ln-text-meta);
@@ -189,8 +182,8 @@
 
 @media (min-width: 72em) {
   .ln-reading__body {
-    grid-template-columns: var(--reading-measure) var(--reading-rail);
-    column-gap: var(--reading-gutter);
+    grid-template-columns: var(--ln-reading-measure) var(--ln-reading-rail);
+    column-gap: var(--ln-reading-gutter);
     justify-content: start;
   }
 
@@ -200,7 +193,7 @@
 
   .ln-reading__toc {
     display: block;
-    margin-top: var(--reading-body-gap);
+    margin-top: var(--ln-reading-body-gap);
     position: sticky;
     top: var(--ln-space-8);
     max-height: calc(100vh - var(--ln-space-16));
@@ -222,7 +215,7 @@
 
 /* ── 文末：上一篇/下一篇之后是落款，不再各画一条横线 ───── */
 .ln-reading__footer {
-  max-width: var(--reading-measure);
+  max-width: var(--ln-reading-measure);
 }
 
 .ln-copyright {

@@ -5,7 +5,6 @@ import DecorStyles from '@/components/decor/DecorStyles.astro'
 import HeaderSearch from '@/components/search/HeaderSearch.astro'
 import SiteFooter from '@/components/site/SiteFooter.astro'
 import SiteHeader from '@/components/site/SiteHeader.astro'
-import Toast from '@/components/site/Toast.astro'
 import config from '@/site-config'
 
 import '@/assets/styles/tokens.css'
@@ -13,6 +12,7 @@ import '@/assets/styles/app.css'
 import '@/assets/styles/global.css'
 import '@/assets/styles/jump-link.css'
 import '@/assets/styles/pixel-frame.css'
+import '@/assets/styles/page-section.css'
 
 interface Props {
   meta: SiteMeta
@@ -35,9 +35,7 @@ const isSearchPage = Astro.url.pathname.replace(/\/$/, '') === '/search'
       {!isSearchPage && <HeaderSearch />}
       <main class='ln-main' id='content' tabindex='-1'><slot /></main>
       <SiteFooter />
-    </div>
-    <Toast />
-  </body>
+    </div>  </body>
 </html>
 
 <style>

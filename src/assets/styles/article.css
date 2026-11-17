@@ -1,5 +1,6 @@
 /* 阅读页正文排版：文章头、Markdown 正文、来源行。
-   数值以 tokens.css 为源；阅读尺度的少量局部变量在 reading.css 的 .ln-reading 上定义。 */
+   版心/目录轨/正文字号行高来自 tokens 的 --ln-reading-*；其余字号、行高、间距仍是本文件的局部取值，
+   改全站尺度请改 tokens，改某一段的排版再动这里。 */
 
 /* ── 文章头 ───────────────────────────────────────────── */
 .ln-article-draft {
@@ -34,8 +35,8 @@
   max-width: 36em;
   margin: var(--ln-lead-gap) 0 0;
   color: hsl(var(--ln-color-muted));
-  font-size: 1.0625rem;
-  line-height: 1.75;
+  font-size: var(--ln-text-reading-body);
+  line-height: var(--ln-leading-reading-lead);
   letter-spacing: 0;
   overflow-wrap: anywhere;
   text-wrap: pretty;
@@ -99,8 +100,8 @@
   /* 取消 UnoCSS typography 的 65ch 上限；实际行长由 reading.css 的栏宽决定 */
   max-width: none;
   color: hsl(var(--ln-color-body));
-  font-size: 1.0625rem;
-  line-height: 1.9;
+  font-size: var(--ln-text-reading-body);
+  line-height: var(--ln-leading-reading-body);
   letter-spacing: 0;
 }
 
@@ -206,7 +207,7 @@
 /* ── 引用：无卡片、无引号装饰，只留一条钴蓝细线 ───────── */
 .ln-prose blockquote {
   margin: 1.8em 0;
-  padding: 0 0 0 var(--reading-inset, 20px);
+  padding: 0 0 0 var(--ln-space-5);
   border: 0;
   border-inline-start: 2px solid hsl(var(--ln-color-accent));
   border-radius: 0;

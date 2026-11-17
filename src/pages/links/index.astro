@@ -22,7 +22,7 @@ const groupTitles: Record<string, string> = {
 <PageLayout {meta} title='友链'>
   <JumpLink slot='tools' href={editUrl} label='提交 PR' direction='external' external />
 
-  <section class='ln-friend-block' aria-labelledby='friend-title'>
+  <section class='ln-friend-block ln-page-section' aria-labelledby='friend-title'>
     <h2 id='friend-title'>站点</h2>
     <div class='ln-friend-block__body'>
       {
@@ -35,7 +35,7 @@ const groupTitles: Record<string, string> = {
     </div>
   </section>
 
-  <section class='ln-friend-block' aria-labelledby='apply-title'>
+  <section class='ln-friend-block ln-page-section' aria-labelledby='apply-title'>
     <h2 id='apply-title'>申请友链</h2>
     <div class='ln-friend-block__body ln-friend-block__application ln-pixel-frame'>
       <p class='ln-friend-note'>申请前请先在您的站点添加本站链接，然后提交 PR。</p>
@@ -61,8 +61,6 @@ const groupTitles: Record<string, string> = {
 <style>
   .ln-friend-block {
     display: grid;
-    gap: var(--ln-space-6);
-    padding-block: var(--ln-space-8);
   }
   .ln-friend-block h2 {
     margin: 0;
@@ -119,11 +117,6 @@ const groupTitles: Record<string, string> = {
     margin-top: var(--ln-space-6);
   }
   @media (min-width: 40em) {
-    .ln-friend-block {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
-      gap: var(--ln-space-8);
-      padding-block: var(--ln-space-10);
-    }
     .ln-friend-block:has(.ln-friend-block__application) > h2 {
       padding-top: var(--ln-space-8);
     }

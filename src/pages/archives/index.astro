@@ -25,7 +25,7 @@ const meta = { description: '全部文章按年归档', title: '文章归档' }
         <p class='ln-archive__empty'>暂无文章。</p>
       ) : (
         allPostsByYear.map(([year, yearPosts]) => (
-          <section class='ln-year' aria-labelledby={`year-${year}`}>
+          <section class='ln-year ln-page-section' aria-labelledby={`year-${year}`}>
             <h2 id={`year-${year}`}>
               <span class='ln-year__number'>{year}</span>
               <span class='ln-year__count'>{yearPosts.length} 篇文章</span>
@@ -56,8 +56,6 @@ const meta = { description: '全部文章按年归档', title: '文章归档' }
   }
   .ln-year {
     display: grid;
-    gap: var(--ln-space-6);
-    padding-block: var(--ln-space-8);
   }
   .ln-year h2 {
     display: flex;
@@ -90,11 +88,6 @@ const meta = { description: '全部文章按年归档', title: '文章归档' }
     color: hsl(var(--ln-color-muted));
   }
   @media (min-width: 40em) {
-    .ln-year {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
-      gap: var(--ln-space-8);
-      padding-block: var(--ln-space-10);
-    }
     .ln-year h2 {
       display: grid;
       align-content: start;

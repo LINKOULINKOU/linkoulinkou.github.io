@@ -8,7 +8,6 @@
   --ln-color-accent: 225 73% 46%;
   --ln-color-control: 220 5% 46%;
   --ln-color-line: 220 8% 87%;
-  --ln-color-paper: 0 0% 100%;
   --ln-color-faint: 220 6% 57%;
   --ln-color-frame: 224 18% 42%;
   --ln-frame-dot: 3px;
@@ -16,10 +15,8 @@
   --ln-frame-softness: 0.12px;
   --ln-color-selection: 225 65% 89%;
   --ln-color-panel: 220 20% 98%;
-  --ln-color-current: 225 60% 95%;
   --ln-color-hover: 220 20% 97%;
   --ln-color-press: 220 15% 94%;
-  --ln-color-title-hover: 225 73% 39%;
 
   --ln-font-sans: 'Inter', 'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
   --ln-font-mono: 'SFMono-Regular', 'Cascadia Code', Consolas, monospace;
@@ -48,16 +45,13 @@
   --ln-weight-normal: 400;
   --ln-weight-medium: 500;
   --ln-weight-strong: 600;
-  --ln-weight-title: 700;
   --ln-tracking-label: 0.12em;
 
   --ln-motion-hover: 180ms;
   --ln-motion-fast: 100ms;
   --ln-motion-base: 260ms;
-  --ln-motion-reveal: 850ms;
   --ln-motion-wordmark: 4.8s;
   --ln-ease-standard: cubic-bezier(0.2, 0, 0, 1);
-  --ln-ease-reveal: cubic-bezier(0.16, 1, 0.3, 1);
   --ln-focus-width: 2px;
   --ln-focus-offset: 3px;
   --ln-state-bar: 2px;
@@ -79,7 +73,6 @@
   --ln-space-10: 40px;
   --ln-space-12: 48px;
   --ln-space-16: 64px;
-  --ln-space-20: 80px;
 
   --ln-page-max: 1120px;
   --ln-page-inset: 20px;
@@ -87,15 +80,17 @@
   --ln-content-top: 36px;
   --ln-width-sidebar: 336px;
   --ln-home-gap: 48px;
-  --ln-width-reading: 704px;
-  --ln-width-toc: 232px;
-  --ln-reading-gap: 40px;
   --ln-measure: 62ch;
-  --ln-body-gap: 28px;
+
+  /* 阅读尺度：正文列、目录轨与正文自身字号/行高。改版心只改这里。 */
+  --ln-reading-measure: 660px;
+  --ln-reading-rail: 216px;
+  --ln-reading-gutter: 64px;
+  --ln-reading-body-gap: 28px;
+  --ln-text-reading-body: 1.0625rem;
+  --ln-leading-reading-body: 1.9;
+  --ln-leading-reading-lead: 1.75;
   --ln-lead-gap: 12px;
-  --ln-row-min: 80px;
-  --ln-row-entry: 52px;
-  --ln-row-month: 44px;
   --ln-entry-short-meta-width: 56px;
   --ln-entry-date-width: 88px;
   --ln-width-search: 880px;
@@ -103,7 +98,6 @@
   --ln-search-input-height: 52px;
   --ln-search-viewport-height: 64vh;
   --ln-wordmark-width: 120px;
-  --ln-wordmark-height: 43px;
   --ln-wordmark-row: 18px;
   --ln-wordmark-gap: 7px;
   --ln-wordmark-softness: 0.28px;

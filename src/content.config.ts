@@ -42,7 +42,7 @@ const blog = defineCollection({
 })
 
 // Define tracking collection
-// 外部研究产物（前沿追踪）同步而来，见 SITE-INDEX.md §8；目录为生成物，勿手改
+// 外部研究产物（前沿追踪）同步而来；目录为生成物，勿手改（规则见 SITE-INDEX.md）
 const tracking = defineCollection({
   loader: glob({
     base: './src/content/tracking',

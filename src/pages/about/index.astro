@@ -17,7 +17,7 @@ const sections = [
 
 <PageLayout {meta} title='关于'>
   <div class='ln-about-body'>
-    <section class='ln-about' aria-labelledby='about-site'>
+    <section class='ln-about ln-page-section' aria-labelledby='about-site'>
       <h2 id='about-site'>这个站点</h2>
       <div class='ln-about__content ln-about__intro ln-pixel-frame'>
         <p class='ln-about__statement'>
@@ -27,7 +27,7 @@ const sections = [
       </div>
     </section>
 
-    <section class='ln-about' aria-labelledby='about-content'>
+    <section class='ln-about ln-page-section' aria-labelledby='about-content'>
       <h2 id='about-content'>内容</h2>
       <ul class='ln-about__index'>
         {
@@ -44,7 +44,7 @@ const sections = [
       </ul>
     </section>
 
-    <section class='ln-about' aria-labelledby='about-contact'>
+    <section class='ln-about ln-page-section' aria-labelledby='about-contact'>
       <h2 id='about-contact'>联系</h2>
       <div class='ln-about__content'>
         <ul class='ln-about__links'>
@@ -63,8 +63,6 @@ const sections = [
   }
   .ln-about {
     display: grid;
-    gap: var(--ln-space-6);
-    padding-block: var(--ln-space-8);
   }
   .ln-about:first-child {
     padding-top: var(--ln-space-6);
@@ -144,11 +142,6 @@ const sections = [
     font-size: var(--ln-text-sm);
   }
   @media (min-width: 40em) {
-    .ln-about {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
-      gap: var(--ln-space-8);
-      padding-block: var(--ln-space-10);
-    }
     .ln-about:first-child > h2 {
       padding-top: var(--ln-space-6);
     }

@@ -12,7 +12,7 @@ span.katex-display {
   margin-inline: auto;
 }
 .katex-html .tag {
-  /* biome-ignore lint/complexity/noImportantStyles: this is to cover the declaimed style */
+  /* 覆盖上游对 .tag 的定位设置 */
   position: relative !important;
   display: inline-block;
   padding-inline-start: 0.5rem;

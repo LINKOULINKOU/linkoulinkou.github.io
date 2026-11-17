@@ -1,0 +1,15 @@
+/* 浏览页的「题签 + 正文」两栏骨架：窄屏单列，≥40em 变 1:3。
+   页面只保留自己特有的排版（标题对齐、行内网格等），这三条间距由这里统一负责。 */
+.ln-page-section {
+  display: grid;
+  gap: var(--ln-space-6);
+  padding-block: var(--ln-space-8);
+}
+
+@media (min-width: 40em) {
+  .ln-page-section {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
+    gap: var(--ln-space-8);
+    padding-block: var(--ln-space-10);
+  }
+}

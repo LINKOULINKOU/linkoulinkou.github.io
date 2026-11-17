@@ -11,7 +11,7 @@ interface Props {
 }
 const { direction = 'forward', class: className } = Astro.props
 
-/** 墨迹整体比画布中心高 1px，对齐 13px 中文的视觉中心（行盒中心偏高约 0.75px）。 */
+/** 墨迹整体比画布中心高 1px，对齐小号中文（--ln-text-meta）的视觉中心（行盒中心偏高约 0.75px）。 */
 const PATHS = {
   back: 'M4 3h2v1h-2zM3 4h2v1h-2zM2 5h2v1h-2zM2 6h13v2h-13zM2 8h2v1h-2zM3 9h2v1h-2zM4 10h2v1h-2z',
   forward:
