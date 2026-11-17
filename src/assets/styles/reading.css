@@ -90,18 +90,13 @@
   padding-bottom: var(--ln-space-4);
 }
 
-/* ── 目录：细线书脊 + 进度线 + 整行当前位置 ───────────── */
+/* ── 目录：细线书脊 + 当前章节整行着色 ───────────────── */
 .ln-toc {
-  position: relative;
   padding-left: var(--ln-space-4);
   border-left: var(--ln-border-width) solid hsl(var(--ln-color-line));
 }
 
 .ln-toc__head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--ln-space-2);
   margin-bottom: var(--ln-space-2);
 }
 
@@ -112,19 +107,6 @@
   font-weight: var(--ln-weight-medium);
   letter-spacing: 0.12em;
   line-height: 1.4;
-}
-
-.ln-toc__count {
-  margin: 0;
-  color: hsl(var(--ln-color-faint));
-  font: var(--ln-text-micro) / 1.4 var(--ln-font-mono);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.06em;
-  white-space: nowrap;
-}
-
-.ln-toc__rail {
-  position: relative;
 }
 
 .ln-toc__list {
@@ -138,10 +120,9 @@
 }
 
 .ln-toc__item a {
-  position: relative;
   display: block;
-  margin-inline: calc(var(--ln-space-2) * -1);
-  padding: 5px 24px 5px var(--ln-space-2);
+  margin-inline-start: calc(var(--ln-space-2) * -1);
+  padding: 5px var(--ln-space-2);
   border-radius: var(--ln-radius-sm);
   color: hsl(var(--ln-color-muted));
   font-size: var(--ln-text-meta);
@@ -151,23 +132,6 @@
   transition:
     color var(--ln-motion-hover) var(--ln-ease-standard),
     background-color var(--ln-motion-hover) var(--ln-ease-standard);
-}
-
-/* 右侧小箭头是静态的「可跳转」提示；不用下划线，避免目录显得杂乱 */
-.ln-toc__item a::after {
-  position: absolute;
-  inset-block-start: 50%;
-  inset-inline-end: 8px;
-  color: hsl(var(--ln-color-muted));
-  font-size: 12px;
-  line-height: 1;
-  content: '→' / '';
-  opacity: 0.7;
-  transform: translateY(-50%) translateX(-2px);
-  transition:
-    color var(--ln-motion-hover) var(--ln-ease-standard),
-    opacity var(--ln-motion-hover) var(--ln-ease-standard),
-    transform var(--ln-motion-hover) var(--ln-ease-standard);
 }
 
 .ln-toc__item--h2 > a {
@@ -186,65 +150,25 @@
   background-color: hsl(var(--ln-color-hover));
 }
 
-.ln-toc__item a:hover::after,
-.ln-toc__item a:focus-visible::after {
-  color: hsl(var(--ln-color-accent));
-  opacity: 1;
-  transform: translateY(-50%);
-}
-
 .ln-toc__item a:focus-visible {
   outline-offset: -2px;
   color: hsl(var(--ln-color-accent));
   background-color: hsl(var(--ln-color-hover));
 }
 
-/* 当前位置：整行着色 + 书脊上的进度线，不再只靠一条细杠 */
+/* 当前位置：整行浅底 + 加粗，不再加进度线与端点方块 */
 .ln-toc__item a[aria-current='true'] {
   color: hsl(var(--ln-color-ink));
-  background-color: hsl(var(--ln-color-accent) / 0.07);
+  background-color: hsl(var(--ln-color-accent) / 0.09);
   font-weight: var(--ln-weight-strong);
-}
-
-.ln-toc__item a[aria-current='true']::after {
-  opacity: 0;
 }
 
 .ln-toc__item--h3 > a[aria-current='true'] {
   font-weight: var(--ln-weight-medium);
 }
 
-.ln-toc__progress {
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline-start: calc(var(--ln-space-4) * -1 - var(--ln-border-width));
-  z-index: 1;
-  width: var(--ln-state-bar);
-  height: 0;
-  background-color: hsl(var(--ln-color-accent));
-  pointer-events: none;
-  transition: height var(--ln-motion-base) var(--ln-ease-standard);
-}
-
-/* 进度线末端的小方块：当前项在书脊上的位置；没有当前项时不显示 */
-.ln-toc__progress::after {
-  position: absolute;
-  inset-block-end: -3px;
-  inset-inline-start: 0;
-  display: none;
-  width: 6px;
-  height: 6px;
-  background-color: hsl(var(--ln-color-accent));
-  content: '';
-}
-
-.ln-toc__progress[data-active='true']::after {
-  display: block;
-}
-
 /* 窄屏 details 里的紧凑目录：命中区放大到 44px */
-.ln-toc--compact .ln-toc__head,
-.ln-toc--compact .ln-toc__progress {
+.ln-toc--compact .ln-toc__head {
   display: none;
 }
 
@@ -294,7 +218,7 @@
     scrollbar-width: thin;
   }
 
-  /* 目录滚动时保留标题与当前位置计数 */
+  /* 目录滚动时固定标题 */
   .ln-reading__toc .ln-toc__head {
     position: sticky;
     top: 0;

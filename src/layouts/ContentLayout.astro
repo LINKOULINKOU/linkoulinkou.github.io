@@ -32,6 +32,64 @@ const hasToc = headings.some(({ depth }) => depth === 2 || depth === 3)
   <div class='ln-reading'>
     <article class='ln-reading__main' data-pagefind-body>
       <header class='ln-reading__head'><slot name='header' /></header>
+      <script is:inline>
+        // 标题单行自适应：按长度在 20–30px 间取值，尽量铺满正文栏。
+        // 放不进一行时退回 26px 基准并允许正常换行；无 JS 时保持 CSS 默认。
+        ;(() => {
+          const MIN = 20
+          const MAX = 30
+
+          const fit = () => {
+            for (const title of document.querySelectorAll('.ln-article-title')) {
+              let text = title.querySelector(':scope > .ln-title-fit')
+              if (!text) {
+                text = document.createElement('span')
+                text.className = 'ln-title-fit'
+                while (title.firstChild) text.appendChild(title.firstChild)
+                title.appendChild(text)
+              }
+
+              const available = title.clientWidth - 1
+              title.style.whiteSpace = 'nowrap'
+
+              const measure = (size) => {
+                title.style.fontSize = size + 'px'
+                return text.getBoundingClientRect().width
+              }
+
+              let size = MAX
+              if (measure(MAX) > available) {
+                let low = MIN
+                let high = MAX
+                while (high - low > 0.1) {
+                  const mid = (low + high) / 2
+                  if (measure(mid) <= available) low = mid
+                  else high = mid
+                }
+                size = low
+              }
+
+              if (measure(size) > available) {
+                title.style.whiteSpace = ''
+                title.style.fontSize = ''
+              } else {
+                title.style.fontSize = Math.floor(size * 10) / 10 + 'px'
+              }
+            }
+          }
+
+          fit()
+          let timer = 0
+          window.addEventListener(
+            'resize',
+            () => {
+              clearTimeout(timer)
+              timer = window.setTimeout(fit, 120)
+            },
+            { passive: true }
+          )
+        })()
+      </script>
       {
         hasToc && (
           <details class='ln-toc-mobile' data-pagefind-ignore>
