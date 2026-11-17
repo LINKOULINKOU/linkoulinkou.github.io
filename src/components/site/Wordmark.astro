@@ -1,9 +1,5 @@
 ---
-/**
- * 双行字标：石墨色为主，约六分之一像素点染钴蓝，作为「信号噪点」。
- * 微小静态偏差＋持续错相位流散，宏观可读、局部不规则。
- */
-const ACCENT_EVERY = 6
+/** 同色双行字标：微小静态偏差＋持续错相位流散，宏观可读、局部不规则。 */
 const glyphs: Record<string, string[]> = {
   L: ['10000', '10000', '10000', '10000', '10000', '10000', '11111'],
   I: ['111', '010', '010', '010', '010', '010', '111'],
@@ -31,8 +27,6 @@ const rows = [0, 1].map((row) => pixels.map((pixel, index) => {
     opacity: 0.74 + ((seed * 3) % 5) * 0.05,
     dx: (((seed * 13) % 17) - 8) * 0.42,
     dy: (((seed * 7) % 13) - 6) * 0.36,
-    // 稀疏钴蓝：按固定步长取样，两行错开，避免形成规则条纹
-    accent: (seed * 5 + row) % ACCENT_EVERY === 2,
     seed
   }
 }))
@@ -44,9 +38,7 @@ const rows = [0, 1].map((row) => pixels.map((pixel, index) => {
       <svg class='ln-wordmark__row' viewBox={`0 0 ${width} 7`} preserveAspectRatio='none' fill='currentColor' shape-rendering='crispEdges' focusable='false'>
         {pixels.map((p, index) => (
           <rect x={p.x} y={p.y} width={p.size} height={p.size} opacity={p.opacity}
-            fill={p.accent ? 'hsl(var(--ln-color-accent))' : undefined}
             data-wm-pixel={index} data-wm-row={row} data-seed={p.seed}
-            data-accent={p.accent ? '' : undefined}
             data-dx={p.dx} data-dy={p.dy} data-opacity={p.opacity} />
         ))}
       </svg>
