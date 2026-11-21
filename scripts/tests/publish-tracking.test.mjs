@@ -668,3 +668,30 @@ test('verify --sha 只读复验部署与线上正文，不重复构建或提交'
     c.cleanup()
   }
 })
+test('正文容器识别同时兼容 main#content 与旧版 div#content', () => {
+  const current = `<!doctype html><html><body>
+<main class="ln-main" id="content" tabindex="-1"><div class="row"><a href="/tracking">回</a></div>
+<div id="content-header"><h1>标题</h1></div>
+<div class="prose"><p>当前站点的正文。</p><p>第二段。</p></div>
+</main><footer>footer</footer></body></html>`
+  const text = extractTrackingBodyText(current)
+  assert.ok(text, '主容器为 main 时应提取到正文')
+  assert.ok(text.includes('当前站点的正文。'))
+  assert.ok(text.includes('第二段。'))
+
+  const legacy = `<html><body><main><article><div id="content" class="prose"><p>旧版正文。</p></div></article></main></body></html>`
+  const old = extractTrackingBodyText(legacy)
+  assert.ok(old, '容器为 div 时仍应提取到正文')
+  assert.ok(old.includes('旧版正文。'))
+})
+
+test('正文容器缺失或同标签嵌套时退回 null / 正确配对', () => {
+  assert.equal(extractTrackingBodyText('<html><body><p>无容器</p></body></html>'), null)
+  assert.equal(extractTrackingBodyText('<html><body><div id="content"></div></body></html>'), null)
+
+  const nested = `<html><body><main id="content"><div><div><p>深层正文。</p></div></div></main></body></html>`
+  const text = extractTrackingBodyText(nested)
+  assert.ok(text, '嵌套 div 不应影响 main 容器的配对')
+  assert.ok(text.includes('深层正文。'))
+  assert.doesNotMatch(text, /<\/?(?:div|main)>/)
+})

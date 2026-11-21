@@ -112,20 +112,22 @@ function htmlToText(html) {
 
 /**
  * 从详情页提取正文容器 #content（真实页面见 src/pages/tracking/[...slug].astro
- * 渲染出的 <div id="content" class="... prose ...">），返回规范化全文文本。
+ * 渲染出的 `<main id="content" ...>`；旧版为 `<div id="content" class="... prose ...">`），
+ * 返回规范化全文文本。容器标签名按实际页面取，故 div/main/article 均可。
  * 找不到容器返回 null，避免退化成标题/整页比较而误判通过。
  */
 export function extractTrackingBodyText(html) {
   const source = stripNonContent(html)
-  const open = /<div\b[^>]*\bid\s*=\s*["']content["'][^>]*>/i.exec(source)
+  const open = /<([a-z][a-z0-9-]*)\b[^>]*\bid\s*=\s*["']content["'][^>]*>/i.exec(source)
   if (!open) return null
+  const tag = open[1].toLowerCase()
   const start = open.index + open[0].length
-  const tagRe = /<div\b[^>]*>|<\/div\s*>/gi
+  const tagRe = new RegExp(`<${tag}\\b[^>]*>|</${tag}\\s*>`, 'gi')
   tagRe.lastIndex = start
   let depth = 1
   let match
   while ((match = tagRe.exec(source))) {
-    if (match[0][1] === '/') depth -= 1
+    if (match[0].startsWith('</')) depth -= 1
     else if (!/\/>\s*$/.test(match[0])) depth += 1
     if (depth === 0) {
       const text = htmlToText(source.slice(start, match.index))
