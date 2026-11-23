@@ -257,7 +257,7 @@
   align-items: center;
   gap: var(--ln-space-3);
   min-height: var(--ln-hit-min);
-  padding: 8px 0;
+  padding: var(--ln-space-2) 0;
   border-top: var(--ln-border-width) solid hsl(var(--ln-color-line));
   color: hsl(var(--ln-color-ink));
   font-weight: var(--ln-weight-medium);
@@ -274,16 +274,16 @@
 
 .ln-prose .tracking-note > summary::before {
   flex: none;
-  width: 6px;
-  height: 6px;
+  width: var(--ln-bullet);
+  height: var(--ln-bullet);
   background-color: hsl(var(--ln-color-accent));
   content: '';
 }
 
 .ln-prose .tracking-note > summary::after {
   flex: none;
-  width: 7px;
-  height: 7px;
+  width: var(--ln-caret);
+  height: var(--ln-caret);
   margin-inline-start: auto;
   border-right: var(--ln-border-width) solid hsl(var(--ln-color-muted));
   border-bottom: var(--ln-border-width) solid hsl(var(--ln-color-muted));
@@ -315,7 +315,7 @@
 /* 展开后的元信息与签条文字左对齐（6px 方块 + 12px 间距） */
 .ln-prose .tracking-note blockquote {
   margin: 0;
-  padding: var(--ln-space-3) 0 var(--ln-space-1) calc(6px + var(--ln-space-3));
+  padding: var(--ln-space-3) 0 var(--ln-space-1) calc(var(--ln-bullet) + var(--ln-space-3));
   border: 0;
   font-size: var(--ln-text-sm);
   line-height: 1.75;

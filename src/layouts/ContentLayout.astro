@@ -33,14 +33,27 @@ const hasToc = headings.some(({ depth }) => depth === 2 || depth === 3)
     <article class='ln-reading__main' data-pagefind-body>
       <header class='ln-reading__head'><slot name='header' /></header>
       <script is:inline>
-        // 标题单行自适应：按长度在 20–30px 间取值，尽量铺满正文栏。
-        // 放不进一行时退回 26px 基准并允许正常换行；无 JS 时保持 CSS 默认。
+        // 标题单行自适应：在 --ln-title-fit-min / --ln-title-fit-max 之间取值，尽量铺满正文栏。
+        // 上下限与基准字号都取自 tokens，脚本不另存数值；
+        // 放到下限仍放不进一行时清掉内联样式，退回 CSS 的字号与正常换行；无 JS 时完全不执行。
         ;(() => {
-          const MIN = 20
-          const MAX = 30
+          const rootSize = () => parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
+          // token 可能是 rem / px / 无单位，统一换算成 px
+          const px = (value, fallback) => {
+            const match = /^(-?[\d.]+)\s*(px|rem|em)?$/.exec(String(value).trim())
+            if (!match) return fallback
+            const n = parseFloat(match[1])
+            if (!Number.isFinite(n)) return fallback
+            return match[2] === 'rem' || match[2] === 'em' ? n * rootSize() : n
+          }
 
           const fit = () => {
             for (const title of document.querySelectorAll('.ln-article-title')) {
+              const style = getComputedStyle(title)
+              const base = parseFloat(style.fontSize) || 26
+              const MIN = px(style.getPropertyValue('--ln-title-fit-min'), base)
+              const MAX = px(style.getPropertyValue('--ln-title-fit-max'), base)
+
               let text = title.querySelector(':scope > .ln-title-fit')
               if (!text) {
                 text = document.createElement('span')

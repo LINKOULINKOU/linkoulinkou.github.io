@@ -33,6 +33,9 @@
   --ln-text-feature: 1.25rem;
   --ln-text-article-title: 1.625rem;
   --ln-text-reading: 1rem;
+  /* 标题单行自适应的下限/上限；基准值仍是 --ln-text-article-title */
+  --ln-title-fit-min: 1.25rem;
+  --ln-title-fit-max: 1.875rem;
 
   --ln-leading-title: 1.3;
   --ln-leading-article: 1.4;
@@ -60,6 +63,7 @@
   --ln-link-min: 32px;
   --ln-icon-size: 16px;
   --ln-bullet: 6px;
+  --ln-caret: 7px;
   --ln-radius-sm: 2px;
   --ln-border-width: 1px;
 

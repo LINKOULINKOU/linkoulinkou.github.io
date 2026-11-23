@@ -68,8 +68,8 @@
 }
 
 .ln-toc-mobile > summary::after {
-  width: 7px;
-  height: 7px;
+  width: var(--ln-caret);
+  height: var(--ln-caret);
   margin-inline-end: var(--ln-space-1);
   border-right: var(--ln-border-width) solid hsl(var(--ln-color-muted));
   border-bottom: var(--ln-border-width) solid hsl(var(--ln-color-muted));
